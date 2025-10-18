@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 
+// Onboarding flow command for step-by-step channel progression
+
 module.exports = {
   name: 'onboarding',
   type: 'slash',
