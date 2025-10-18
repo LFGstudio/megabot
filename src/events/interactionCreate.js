@@ -242,6 +242,20 @@ async function handleButtonInteraction(interaction, client) {
       }
       return;
     }
+
+    // Handle simple button system
+    if (customId.startsWith('btn_')) {
+      if (customId === 'btn_register') {
+        await ButtonHandlers.handleTicketRegister(interaction, client);
+      } else if (customId === 'btn_warmup') {
+        await ButtonHandlers.handleTicketWarmup(interaction, client);
+      } else if (customId === 'btn_help') {
+        await ButtonHandlers.handleTicketHelp(interaction, client);
+      } else if (customId === 'btn_stats') {
+        await ButtonHandlers.handleTicketStats(interaction, client);
+      }
+      return;
+    }
     
     // Handle verification approval/rejection
     if (customId.startsWith('verify_approve_') || customId.startsWith('verify_reject_')) {
