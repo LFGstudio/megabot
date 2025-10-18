@@ -14,14 +14,17 @@ class ReferralChannelHandlers {
         await user.save();
       }
 
-      // Check if user is a Clipper
-      if (user.role !== 'Clipper') {
+      // Check if user has the Clipper Discord role
+      const clipperRole = interaction.guild.roles.cache.get(client.config.roles.clipper);
+      const hasClipperRole = clipperRole && member.roles.cache.has(clipperRole.id);
+      
+      if (!hasClipperRole) {
         const embed = new EmbedBuilder()
           .setTitle('❌ Access Denied')
           .setDescription('You must complete the onboarding process and become a **Clipper** to access the referral system.')
           .setColor(0xff0000)
           .addFields(
-            { name: 'Current Status', value: user.role, inline: true },
+            { name: 'Current Status', value: hasClipperRole ? 'Clipper (Discord Role)' : 'Not Clipper', inline: true },
             { name: 'Required Status', value: 'Clipper', inline: true },
             { name: 'Next Steps', value: 'Complete your TikTok verification and warm-up process first!', inline: false }
           )
