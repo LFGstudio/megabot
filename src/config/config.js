@@ -30,9 +30,17 @@ const config = {
   // Role IDs
   roles: {
     newMember: process.env.NEW_MEMBER_ROLE_ID,
+    onboardingStarted: process.env.ONBOARDING_STARTED_ROLE_ID,
+    accountCreated: process.env.ACCOUNT_CREATED_ROLE_ID,
     warmingUp: process.env.WARMING_UP_ROLE_ID,
     clipper: process.env.CLIPPER_ROLE_ID,
-    admin: process.env.ADMIN_ROLE_ID
+    admin: process.env.ADMIN_ROLE_ID,
+    moderator: process.env.MODERATOR_ROLE_ID
+  },
+
+  // Category IDs
+  categories: {
+    verification: process.env.VERIFICATION_CATEGORY_ID
   },
   
   // Bot Settings

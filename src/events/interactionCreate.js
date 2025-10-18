@@ -208,6 +208,10 @@ async function handleModalSubmit(interaction, client) {
         embeds: [confirmEmbed],
         ephemeral: true
       });
+    } else if (customId === 'tiktok_verification_modal') {
+      await handleTikTokVerificationModal(interaction, client);
+    } else if (customId === 'warmup_verification_modal') {
+      await handleWarmupVerificationModal(interaction, client);
     }
 
   } catch (error) {
@@ -218,6 +222,144 @@ async function handleModalSubmit(interaction, client) {
     });
   }
 };
+
+async function handleTikTokVerificationModal(interaction, client) {
+  const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+  
+  const tiktokUsername = interaction.fields.getTextInputValue('tiktok_username');
+  const profileLink = interaction.fields.getTextInputValue('profile_link');
+  const country = interaction.fields.getTextInputValue('country');
+  const paymentMethod = interaction.fields.getTextInputValue('payment_method');
+
+  // Create private channel for verification
+  const channelName = `tiktok-verify-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+  const verificationChannel = await interaction.guild.channels.create({
+    name: channelName,
+    type: 0, // GUILD_TEXT
+    parent: client.config.categories.verification,
+    permissionOverwrites: [
+      {
+        id: interaction.guild.id,
+        deny: ['VIEW_CHANNEL']
+      },
+      {
+        id: interaction.user.id,
+        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+      },
+      {
+        id: client.config.roles.moderator,
+        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+      }
+    ]
+  });
+
+  // Send verification details to private channel
+  const verifyEmbed = new EmbedBuilder()
+    .setTitle('🎫 New TikTok Account Verification')
+    .setDescription(`**User:** <@${interaction.user.id}>\n**Discord:** ${interaction.user.tag}`)
+    .addFields(
+      { name: 'TikTok Username', value: `@${tiktokUsername}`, inline: true },
+      { name: 'Profile Link', value: profileLink, inline: true },
+      { name: 'Country', value: country, inline: true },
+      { name: 'Payment Method', value: paymentMethod, inline: true },
+      { name: 'Status', value: '⏳ Pending Review', inline: true }
+    )
+    .setColor(0xffa500)
+    .setTimestamp();
+
+  const approveRow = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(`tiktok_approve_${interaction.user.id}`)
+        .setLabel('Approve Account')
+        .setStyle(ButtonStyle.Success)
+        .setEmoji('✅'),
+      new ButtonBuilder()
+        .setCustomId(`tiktok_reject_${interaction.user.id}`)
+        .setLabel('Reject Account')
+        .setStyle(ButtonStyle.Danger)
+        .setEmoji('❌')
+    );
+
+  await verificationChannel.send({
+    content: `<@&${client.config.roles.moderator}>`,
+    embeds: [verifyEmbed],
+    components: [approveRow]
+  });
+
+  await interaction.reply({
+    content: `✅ Your TikTok account verification has been submitted! Check ${verificationChannel} for updates.`,
+    ephemeral: true
+  });
+}
+
+async function handleWarmupVerificationModal(interaction, client) {
+  const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+  
+  const completedWarmup = interaction.fields.getTextInputValue('completed_warmup');
+  const profileLink = interaction.fields.getTextInputValue('profile_link');
+  const fypScreenshot = interaction.fields.getTextInputValue('fyp_screenshot');
+
+  // Create private channel for verification
+  const channelName = `warmup-verify-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+  const verificationChannel = await interaction.guild.channels.create({
+    name: channelName,
+    type: 0, // GUILD_TEXT
+    parent: client.config.categories.verification,
+    permissionOverwrites: [
+      {
+        id: interaction.guild.id,
+        deny: ['VIEW_CHANNEL']
+      },
+      {
+        id: interaction.user.id,
+        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+      },
+      {
+        id: client.config.roles.moderator,
+        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+      }
+    ]
+  });
+
+  // Send verification details to private channel
+  const verifyEmbed = new EmbedBuilder()
+    .setTitle('🔥 New Warm-Up Verification Request')
+    .setDescription(`**User:** <@${interaction.user.id}>\n**Discord:** ${interaction.user.tag}`)
+    .addFields(
+      { name: 'Warm-Up Confirmation', value: completedWarmup, inline: false },
+      { name: 'Profile Link', value: profileLink, inline: true },
+      { name: 'FYP Description', value: fypScreenshot, inline: false },
+      { name: 'Status', value: '⏳ Pending Review', inline: true }
+    )
+    .setColor(0xff4444)
+    .setTimestamp();
+
+  const approveRow = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(`warmup_approve_${interaction.user.id}`)
+        .setLabel('Approve Warm-Up')
+        .setStyle(ButtonStyle.Success)
+        .setEmoji('🔥'),
+      new ButtonBuilder()
+        .setCustomId(`warmup_reject_${interaction.user.id}`)
+        .setLabel('Reject Warm-Up')
+        .setStyle(ButtonStyle.Danger)
+        .setEmoji('❌')
+    );
+
+  await verificationChannel.send({
+    content: `<@&${client.config.roles.moderator}>`,
+    embeds: [verifyEmbed],
+    components: [approveRow]
+  });
+
+  await interaction.reply({
+    content: `✅ Your warm-up verification has been submitted! Check ${verificationChannel} for updates.`,
+    ephemeral: true
+  });
+}
 
 async function handleButtonInteraction(interaction, client) {
   const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
@@ -254,6 +396,22 @@ async function handleButtonInteraction(interaction, client) {
       } else if (customId === 'btn_stats') {
         await ButtonHandlers.handleTicketStats(interaction, client);
       }
+      return;
+    }
+
+    // Handle onboarding flow buttons
+    const OnboardingHandlers = require('../utils/onboardingHandlers');
+    if (customId === 'start_onboarding') {
+      await OnboardingHandlers.handleStartOnboarding(interaction, client);
+      return;
+    } else if (customId === 'submit_account_verification') {
+      await OnboardingHandlers.handleSubmitAccountVerification(interaction, client);
+      return;
+    } else if (customId === 'submit_tiktok_verification') {
+      await OnboardingHandlers.handleSubmitTikTokVerification(interaction, client);
+      return;
+    } else if (customId === 'submit_warmup_verification') {
+      await OnboardingHandlers.handleSubmitWarmupVerification(interaction, client);
       return;
     }
     
@@ -390,6 +548,122 @@ async function handleButtonInteraction(interaction, client) {
         await client.logAction(
           'Verification Rejected (Button)',
           `<@${interaction.user.id}> rejected verification for <@${userId}>`
+        );
+      }
+    }
+    
+    // Handle TikTok approval/rejection
+    else if (customId.startsWith('tiktok_approve_') || customId.startsWith('tiktok_reject_')) {
+      const userId = customId.split('_')[2];
+      const action = customId.split('_')[1];
+      
+      // Check if user has admin permissions
+      if (!interaction.member.permissions.has('Administrator')) {
+        return interaction.reply({
+          content: '❌ You need administrator permissions to approve/reject TikTok accounts.',
+          ephemeral: true
+        });
+      }
+
+      const member = interaction.guild.members.cache.get(userId);
+      if (!member) {
+        return interaction.reply({
+          content: '❌ User not found in this server.',
+          ephemeral: true
+        });
+      }
+
+      if (action === 'approve') {
+        // Assign "Warming Up" role
+        const warmingUpRole = interaction.guild.roles.cache.get(client.config.roles.warmingUp);
+        if (warmingUpRole) {
+          await member.roles.add(warmingUpRole);
+        }
+
+        // Remove account created role
+        const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
+        if (accountCreatedRole && member.roles.cache.has(accountCreatedRole.id)) {
+          await member.roles.remove(accountCreatedRole);
+        }
+
+        // Send DM to user
+        try {
+          const dmEmbed = new EmbedBuilder()
+            .setTitle('✅ TikTok Account Approved!')
+            .setColor(0x00ff00)
+            .setDescription('Congratulations! Your TikTok account has been approved.')
+            .addFields(
+              { name: '🏷️ New Role', value: 'Warming Up', inline: true },
+              { name: '📋 Next Step', value: 'Head to #warm-up-guide to complete the 3-day warm-up process', inline: false }
+            )
+            .setFooter({ text: 'You can now proceed to the warm-up phase!' })
+            .setTimestamp();
+
+          await member.user.send({ embeds: [dmEmbed] });
+        } catch (dmError) {
+          console.log(`Could not send DM to ${member.user.tag}:`, dmError.message);
+        }
+
+        // Update the original message
+        const approvedEmbed = new EmbedBuilder()
+          .setTitle('✅ TikTok Account Approved')
+          .setColor(0x00ff00)
+          .addFields(
+            { name: '👤 User', value: `<@${userId}>`, inline: true },
+            { name: '✅ Approved by', value: interaction.user.tag, inline: true }
+          )
+          .setFooter({ text: 'MegaBot TikTok Verification System' })
+          .setTimestamp();
+
+        await interaction.update({
+          embeds: [approvedEmbed],
+          components: []
+        });
+
+        // Log the action
+        await client.logAction(
+          'TikTok Account Approved',
+          `<@${interaction.user.id}> approved TikTok account for <@${userId}>`
+        );
+
+      } else if (action === 'reject') {
+        // Send DM to user with rejection
+        try {
+          const dmEmbed = new EmbedBuilder()
+            .setTitle('❌ TikTok Account Rejected')
+            .setColor(0xff0000)
+            .setDescription('Your TikTok account verification has been rejected.')
+            .addFields(
+              { name: '❌ Rejected by', value: interaction.user.tag, inline: true }
+            )
+            .setFooter({ text: 'Please review your submission and try again.' })
+            .setTimestamp();
+
+          await member.user.send({ embeds: [dmEmbed] });
+        } catch (dmError) {
+          console.log(`Could not send DM to ${member.user.tag}:`, dmError.message);
+        }
+
+        // Update the original message
+        const rejectedEmbed = new EmbedBuilder()
+          .setTitle('❌ TikTok Account Rejected')
+          .setColor(0xff0000)
+          .addFields(
+            { name: '👤 User', value: `<@${userId}>`, inline: true },
+            { name: '❌ Rejected by', value: interaction.user.tag, inline: true }
+          )
+          .setFooter({ text: 'MegaBot TikTok Verification System' })
+          .setTimestamp();
+
+        await interaction.update({
+          embeds: [rejectedEmbed],
+          components: []
+        });
+
+        // Log the action
+        await client.logAction(
+          'TikTok Account Rejected',
+          `<@${interaction.user.id}> rejected TikTok account for <@${userId}>`
         );
       }
     }
