@@ -445,6 +445,28 @@ async function handleButtonInteraction(interaction, client) {
       await handleCopyReferralLink(interaction, client);
       return;
     }
+
+    // Handle referral channel buttons
+    const ReferralChannelHandlers = require('../utils/referralChannelHandlers');
+    if (customId === 'get_referral_link') {
+      await ReferralChannelHandlers.handleGetReferralLink(interaction, client);
+      return;
+    } else if (customId === 'view_referral_stats') {
+      await ReferralChannelHandlers.handleViewReferralStats(interaction, client);
+      return;
+    } else if (customId === 'referral_leaderboard') {
+      await ReferralChannelHandlers.handleReferralLeaderboard(interaction, client);
+      return;
+    } else if (customId === 'my_referral_earnings') {
+      await ReferralChannelHandlers.handleMyReferralEarnings(interaction, client);
+      return;
+    } else if (customId === 'referral_rankings') {
+      await ReferralChannelHandlers.handleReferralRankings(interaction, client);
+      return;
+    } else if (customId === 'referral_tips') {
+      await ReferralChannelHandlers.handleReferralTips(interaction, client);
+      return;
+    }
     
     // Handle verification approval/rejection
     if (customId.startsWith('verify_approve_') || customId.startsWith('verify_reject_')) {
