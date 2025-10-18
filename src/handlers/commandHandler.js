@@ -17,29 +17,53 @@ class CommandHandler {
       return;
     }
 
-    const commandFolders = fs.readdirSync(commandPath);
+    const commandItems = fs.readdirSync(commandPath);
+    
+    // Load individual command files in root directory
+    const rootCommandFiles = commandItems.filter(item => {
+      const itemPath = path.join(commandPath, item);
+      return fs.statSync(itemPath).isFile() && item.endsWith('.js');
+    });
+    
+    for (const file of rootCommandFiles) {
+      const filePath = path.join(commandPath, file);
+      const command = require(filePath);
+      
+      if (command.name) {
+        if (command.type === 'slash') {
+          this.slashCommands.set(command.name, command);
+        } else {
+          this.commands.set(command.name, command);
+        }
+        console.log(`✅ Loaded command: ${command.name}`);
+      } else {
+        console.log(`❌ Command at ${filePath} is missing a "name" property`);
+      }
+    }
+    
+    // Load commands from folders
+    const commandFolders = commandItems.filter(item => {
+      const itemPath = path.join(commandPath, item);
+      return fs.statSync(itemPath).isDirectory();
+    });
     
     for (const folder of commandFolders) {
       const folderPath = path.join(commandPath, folder);
-      const stat = fs.statSync(folderPath);
+      const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
       
-      if (stat.isDirectory()) {
-        const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
+      for (const file of commandFiles) {
+        const filePath = path.join(folderPath, file);
+        const command = require(filePath);
         
-        for (const file of commandFiles) {
-          const filePath = path.join(folderPath, file);
-          const command = require(filePath);
-          
-          if (command.name) {
-            if (command.type === 'slash') {
-              this.slashCommands.set(command.name, command);
-            } else {
-              this.commands.set(command.name, command);
-            }
-            console.log(`✅ Loaded command: ${command.name}`);
+        if (command.name) {
+          if (command.type === 'slash') {
+            this.slashCommands.set(command.name, command);
           } else {
-            console.log(`❌ Command at ${filePath} is missing a "name" property`);
+            this.commands.set(command.name, command);
           }
+          console.log(`✅ Loaded command: ${command.name}`);
+        } else {
+          console.log(`❌ Command at ${filePath} is missing a "name" property`);
         }
       }
     }
