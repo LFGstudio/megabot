@@ -361,6 +361,34 @@ async function handleWarmupVerificationModal(interaction, client) {
   });
 }
 
+async function handleCopyReferralLink(interaction, client) {
+  const User = require('../models/User');
+  
+  try {
+    const user = await User.findOne({ discord_id: interaction.user.id });
+    if (!user || !user.referral_invite_code) {
+      return interaction.reply({
+        content: '❌ You don\'t have a referral link yet. Use `/referral link` to generate one.',
+        ephemeral: true
+      });
+    }
+
+    const referralLink = `https://discord.gg/${user.referral_invite_code}`;
+    
+    await interaction.reply({
+      content: `📋 **Your Referral Link:**\n\`${referralLink}\`\n\n💡 **Tip:** Share this link to earn 10% of your referrals' earnings!`,
+      ephemeral: true
+    });
+
+  } catch (error) {
+    console.error('Error in handleCopyReferralLink:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while copying your referral link.',
+      ephemeral: true
+    });
+  }
+}
+
 async function handleButtonInteraction(interaction, client) {
   const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
   const User = require('../models/User');
@@ -412,6 +440,9 @@ async function handleButtonInteraction(interaction, client) {
       return;
     } else if (customId === 'submit_warmup_verification') {
       await OnboardingHandlers.handleSubmitWarmupVerification(interaction, client);
+      return;
+    } else if (customId === 'copy_referral_link') {
+      await handleCopyReferralLink(interaction, client);
       return;
     }
     

@@ -69,6 +69,29 @@ const userSchema = new mongoose.Schema({
   last_payout: {
     type: Date,
     default: null
+  },
+  // Referral System Fields
+  referral_invite_code: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  referred_by: {
+    type: String,
+    default: null,
+    ref: 'User'
+  },
+  referral_earnings: {
+    type: Number,
+    default: 0
+  },
+  affiliate_count: {
+    type: Number,
+    default: 0
+  },
+  referral_invite_created_at: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -106,6 +129,24 @@ userSchema.methods.addPayout = function(amount) {
 
 userSchema.methods.promoteRole = function(newRole) {
   this.role = newRole;
+  return this.save();
+};
+
+// Referral System Methods
+userSchema.methods.generateReferralCode = function() {
+  const username = this.tiktok_username || this.discord_id;
+  const year = new Date().getFullYear();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${username.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}${year}${random}`;
+};
+
+userSchema.methods.addReferralEarnings = function(amount) {
+  this.referral_earnings += amount;
+  return this.save();
+};
+
+userSchema.methods.incrementAffiliateCount = function() {
+  this.affiliate_count += 1;
   return this.save();
 };
 

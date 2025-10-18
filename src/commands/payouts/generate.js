@@ -36,6 +36,7 @@ module.exports = {
       }
 
       const User = require('../../models/User');
+      const Referral = require('../../models/Referral');
       const month = interaction.options.getString('month');
       const dryRun = interaction.options.getBoolean('dry_run') || false;
 
@@ -113,12 +114,12 @@ module.exports = {
 
       await interaction.reply({ embeds: [summaryEmbed] });
 
-      // Process payouts if not a dry run
+        // Process payouts if not a dry run
       if (!dryRun) {
         const processingEmbed = new EmbedBuilder()
           .setTitle('⏳ Processing Payouts')
           .setColor(0xff8800)
-          .setDescription('Updating user balances and sending notifications...')
+          .setDescription('Updating user balances, calculating referral commissions, and sending notifications...')
           .setTimestamp();
 
         const processingMessage = await interaction.followUp({ 
@@ -128,11 +129,33 @@ module.exports = {
 
         let successCount = 0;
         let errorCount = 0;
+        let referralCommissionTotal = 0;
 
         for (const data of eligiblePayouts) {
           try {
             // Update user balance
             await data.user.addPayout(data.payout);
+
+            // Calculate and update referral commissions
+            const referrals = await Referral.find({ 
+              referred_user_id: data.user.discord_id,
+              status: 'active'
+            });
+
+            for (const referral of referrals) {
+              const commission = referral.calculateCommission(data.payout);
+              if (commission > 0) {
+                // Update referral record
+                await referral.updateAffiliateEarnings(referral.affiliate_total_earnings + data.payout);
+                
+                // Update referrer's balance
+                const referrer = await User.findOne({ discord_id: referral.referrer_id });
+                if (referrer) {
+                  await referrer.addReferralEarnings(commission);
+                  referralCommissionTotal += commission;
+                }
+              }
+            }
 
             // Send DM to user
             try {
@@ -166,11 +189,13 @@ module.exports = {
         const resultsEmbed = new EmbedBuilder()
           .setTitle('✅ Payout Processing Complete')
           .setColor(0x00ff00)
-          .setDescription('All payouts have been processed!')
+          .setDescription('All payouts and referral commissions have been processed!')
           .addFields(
             { name: '✅ Successful', value: successCount.toString(), inline: true },
             { name: '❌ Errors', value: errorCount.toString(), inline: true },
-            { name: '💰 Total Amount', value: `$${totalPayoutAmount.toLocaleString()}`, inline: true }
+            { name: '💰 Total Payouts', value: `$${totalPayoutAmount.toLocaleString()}`, inline: true },
+            { name: '🎯 Referral Commissions', value: `$${referralCommissionTotal.toLocaleString()}`, inline: true },
+            { name: '💵 Grand Total', value: `$${(totalPayoutAmount + referralCommissionTotal).toLocaleString()}`, inline: true }
           )
           .setTimestamp();
 
@@ -179,7 +204,7 @@ module.exports = {
         // Log the action
         await client.logAction(
           'Payouts Generated',
-          `<@${interaction.user.id}> generated payouts for ${eligiblePayouts.length} users totaling $${totalPayoutAmount.toLocaleString()}`
+          `<@${interaction.user.id}> generated payouts for ${eligiblePayouts.length} users totaling $${totalPayoutAmount.toLocaleString()} with $${referralCommissionTotal.toLocaleString()} in referral commissions`
         );
       }
 
