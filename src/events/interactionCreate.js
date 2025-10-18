@@ -10,6 +10,9 @@ module.exports = {
       } else if (interaction.type === InteractionType.MessageComponent) {
         // Handle button interactions
         await handleButtonInteraction(interaction, client);
+      } else if (interaction.type === InteractionType.ModalSubmit) {
+        // Handle modal submissions
+        await handleModalSubmit(interaction, client);
       }
     } catch (error) {
       console.error('Error in interactionCreate event:', error);
@@ -26,14 +29,219 @@ module.exports = {
       }
     }
   }
-};
+}
 
-async function handleButtonInteraction(interaction, client) {
+async function handleModalSubmit(interaction, client) {
   const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
   const User = require('../models/User');
 
   try {
     const customId = interaction.customId;
+
+    if (customId === 'verify_modal') {
+      // Handle verification modal submission
+      const tiktokUsername = interaction.fields.getTextInputValue('tiktok_username');
+      const country = interaction.fields.getTextInputValue('country');
+      const profileLink = interaction.fields.getTextInputValue('profile_link');
+
+      // Check if user already exists and is verified
+      let user = await User.findOne({ discord_id: interaction.user.id });
+      
+      if (user && user.verified) {
+        return interaction.reply({
+          content: '❌ You are already verified!',
+          ephemeral: true
+        });
+      }
+
+      if (user && user.verification_submitted_at) {
+        return interaction.reply({
+          content: '❌ You have already submitted a verification request. Please wait for staff review.',
+          ephemeral: true
+        });
+      }
+
+      // Create or update user
+      if (!user) {
+        user = new User({ discord_id: interaction.user.id });
+      }
+
+      user.tiktok_username = tiktokUsername;
+      user.country = country;
+      user.verification_submitted_at = new Date();
+      user.role = 'New Member';
+      
+      await user.save();
+
+      // Send to verification channel
+      const verificationChannel = client.channels.cache.get(client.config.channels.verification);
+      if (verificationChannel) {
+        const verificationMessage = await client.createVerificationEmbed(user);
+        await verificationChannel.send(verificationMessage);
+      }
+
+      // Log the action
+      await client.logAction(
+        'Verification Submitted',
+        `<@${interaction.user.id}> submitted verification for TikTok: ${tiktokUsername}`
+      );
+
+      // Confirmation embed
+      const confirmEmbed = new EmbedBuilder()
+        .setTitle('✅ Verification Submitted')
+        .setColor(0x00ff00)
+        .setDescription('Your verification request has been submitted successfully!')
+        .addFields(
+          { name: '📱 TikTok Username', value: tiktokUsername, inline: true },
+          { name: '🌍 Country', value: country, inline: true },
+          { name: '⏰ Status', value: 'Pending Review', inline: true }
+        )
+        .setFooter({ text: 'Staff will review your submission shortly.' })
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [confirmEmbed],
+        ephemeral: true
+      });
+
+    } else if (customId === 'warmup_modal') {
+      // Handle warm-up modal submission
+      const tiktokUsername = interaction.fields.getTextInputValue('warmup_tiktok_username');
+      const analyticsNote = interaction.fields.getTextInputValue('analytics_note');
+
+      // Check if user exists and is in warming up phase
+      let user = await User.findOne({ discord_id: interaction.user.id });
+      
+      if (!user) {
+        return interaction.reply({
+          content: '❌ You must complete the verification process first. Use "Register Account" to get started.',
+          ephemeral: true
+        });
+      }
+
+      if (!user.verified) {
+        return interaction.reply({
+          content: '❌ You must be verified first. Please wait for your verification to be approved.',
+          ephemeral: true
+        });
+      }
+
+      if (user.warmup_done) {
+        return interaction.reply({
+          content: '❌ You have already completed the warm-up phase!',
+          ephemeral: true
+        });
+      }
+
+      if (user.warmup_submitted_at) {
+        return interaction.reply({
+          content: '❌ You have already submitted a warm-up request. Please wait for staff review.',
+          ephemeral: true
+        });
+      }
+
+      if (user.role !== 'Warming Up') {
+        return interaction.reply({
+          content: '❌ You must be in the warming up phase to submit this request.',
+          ephemeral: true
+        });
+      }
+
+      // Update user
+      user.tiktok_username = tiktokUsername;
+      user.warmup_submitted_at = new Date();
+      await user.save();
+
+      // Send to warm-up review channel
+      const warmupChannel = client.channels.cache.get(client.config.channels.warmup);
+      if (warmupChannel) {
+        const warmupMessage = await client.createWarmupEmbed(user);
+        
+        // Create embed with note about analytics
+        const warmupEmbed = new EmbedBuilder()
+          .setTitle('🔥 New Warm-up Request')
+          .setColor(0xff8800)
+          .addFields(
+            { name: '👤 User', value: `<@${user.discord_id}>`, inline: true },
+            { name: '📱 TikTok Username', value: tiktokUsername, inline: true },
+            { name: '📊 Analytics Note', value: analyticsNote || 'No additional notes provided', inline: false },
+            { name: '📅 Submitted', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: false }
+          )
+          .setFooter({ text: 'MegaBot Warm-up System' })
+          .setTimestamp();
+
+        const row = new ActionRowBuilder()
+          .addComponents(
+            new ButtonBuilder()
+              .setCustomId(`warmup_approve_${user.discord_id}`)
+              .setLabel('✅ Approve')
+              .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+              .setCustomId(`warmup_reject_${user.discord_id}`)
+              .setLabel('❌ Reject')
+              .setStyle(ButtonStyle.Danger)
+          );
+
+        await warmupChannel.send({ embeds: [warmupEmbed], components: [row] });
+      }
+
+      // Log the action
+      await client.logAction(
+        'Warm-up Submitted',
+        `<@${interaction.user.id}> submitted warm-up completion for TikTok: ${tiktokUsername}`
+      );
+
+      // Confirmation embed
+      const confirmEmbed = new EmbedBuilder()
+        .setTitle('✅ Warm-up Submitted')
+        .setColor(0xff8800)
+        .setDescription('Your warm-up completion request has been submitted successfully!')
+        .addFields(
+          { name: '📱 TikTok Username', value: tiktokUsername, inline: true },
+          { name: '📊 Analytics Note', value: analyticsNote || 'No additional notes provided', inline: true },
+          { name: '⏰ Status', value: 'Pending Review', inline: true }
+        )
+        .setFooter({ text: 'Staff will review your submission shortly.' })
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [confirmEmbed],
+        ephemeral: true
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in handleModalSubmit:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while processing your submission.',
+      ephemeral: true
+    });
+  }
+};
+
+async function handleButtonInteraction(interaction, client) {
+  const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+  const User = require('../models/User');
+  const ButtonHandlers = require('../utils/buttonHandlers');
+
+  try {
+    const customId = interaction.customId;
+    
+    // Handle ticket system buttons
+    if (customId.startsWith('ticket_')) {
+      if (customId === 'ticket_register') {
+        await ButtonHandlers.handleTicketRegister(interaction, client);
+      } else if (customId === 'ticket_warmup') {
+        await ButtonHandlers.handleTicketWarmup(interaction, client);
+      } else if (customId === 'ticket_help') {
+        await ButtonHandlers.handleTicketHelp(interaction, client);
+      } else if (customId === 'ticket_stats') {
+        await ButtonHandlers.handleTicketStats(interaction, client);
+      } else if (customId === 'ticket_leaderboard') {
+        await ButtonHandlers.handleTicketLeaderboard(interaction, client);
+      }
+      return;
+    }
     
     // Handle verification approval/rejection
     if (customId.startsWith('verify_approve_') || customId.startsWith('verify_reject_')) {
