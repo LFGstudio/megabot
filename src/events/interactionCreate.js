@@ -255,7 +255,7 @@ async function handleTikTokVerificationModal(interaction, client) {
           allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
         },
         {
-          id: client.config.roles.moderator,
+          id: client.config.roles.moderator || client.config.roles.admin || client.config.roles.admin,
           allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
         }
       ]
@@ -292,7 +292,7 @@ async function handleTikTokVerificationModal(interaction, client) {
     );
 
   await verificationChannel.send({
-    content: `<@&${client.config.roles.moderator}>`,
+    content: `<@&${client.config.roles.moderator || client.config.roles.admin}>`,
     embeds: [verifyEmbed],
     components: [approveRow]
   });
@@ -336,7 +336,7 @@ async function handleWarmupVerificationModal(interaction, client) {
         allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
       },
       {
-        id: client.config.roles.moderator,
+        id: client.config.roles.moderator || client.config.roles.admin,
         allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
       }
     ]
@@ -370,7 +370,7 @@ async function handleWarmupVerificationModal(interaction, client) {
     );
 
   await verificationChannel.send({
-    content: `<@&${client.config.roles.moderator}>`,
+    content: `<@&${client.config.roles.moderator || client.config.roles.admin}>`,
     embeds: [verifyEmbed],
     components: [approveRow]
   });
