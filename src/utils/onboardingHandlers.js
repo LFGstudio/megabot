@@ -17,7 +17,12 @@ class OnboardingHandlers {
       // Remove new member role if exists
       const newMemberRole = interaction.guild.roles.cache.get(client.config.roles.newMember);
       if (newMemberRole && member.roles.cache.has(newMemberRole.id)) {
-        await member.roles.remove(newMemberRole);
+        try {
+          await member.roles.remove(newMemberRole);
+        } catch (roleError) {
+          console.log(`Could not remove new member role: ${roleError.message}`);
+          // Continue without failing the entire process
+        }
       }
 
       // Send confirmation message
@@ -68,7 +73,11 @@ class OnboardingHandlers {
       // Assign "Account Created" role
       const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
       if (accountCreatedRole) {
-        await member.roles.add(accountCreatedRole);
+        try {
+          await member.roles.add(accountCreatedRole);
+        } catch (roleError) {
+          console.log(`Could not add account created role: ${roleError.message}`);
+        }
       }
 
       // Send confirmation message

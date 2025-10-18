@@ -240,15 +240,15 @@ async function handleTikTokVerificationModal(interaction, client) {
     permissionOverwrites: [
       {
         id: interaction.guild.id,
-        deny: ['VIEW_CHANNEL']
+        deny: ['ViewChannel']
       },
       {
         id: interaction.user.id,
-        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+        allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
       },
       {
         id: client.config.roles.moderator,
-        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+        allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
       }
     ]
   });
@@ -309,15 +309,15 @@ async function handleWarmupVerificationModal(interaction, client) {
     permissionOverwrites: [
       {
         id: interaction.guild.id,
-        deny: ['VIEW_CHANNEL']
+        deny: ['ViewChannel']
       },
       {
         id: interaction.user.id,
-        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+        allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
       },
       {
         id: client.config.roles.moderator,
-        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+        allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
       }
     ]
   });
