@@ -226,35 +226,45 @@ async function handleModalSubmit(interaction, client) {
 async function handleTikTokVerificationModal(interaction, client) {
   const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
   
+  console.log('🔍 DEBUG: Starting TikTok verification modal handling');
+  
   const tiktokUsername = interaction.fields.getTextInputValue('tiktok_username');
   const profileLink = interaction.fields.getTextInputValue('profile_link');
   const country = interaction.fields.getTextInputValue('country');
   const paymentMethod = interaction.fields.getTextInputValue('payment_method');
+  
+  console.log('🔍 DEBUG: Modal data received:', { tiktokUsername, profileLink, country, paymentMethod });
 
   // Create private channel for verification
   const channelName = `tiktok-verify-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-  const verificationChannel = await interaction.guild.channels.create({
-    name: channelName,
-    type: 0, // GUILD_TEXT
-    parent: client.config.categories.verification,
-    permissionOverwrites: [
-      {
-        id: interaction.guild.id,
-        deny: ['ViewChannel']
-      },
-      {
-        id: interaction.user.id,
-        allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-      },
-      {
-        id: client.config.roles.moderator,
-        allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-      }
-    ]
-  });
+  console.log('🔍 DEBUG: Attempting to create channel:', channelName);
+  console.log('🔍 DEBUG: Verification category ID:', client.config.categories.verification);
+  
+  try {
+    const verificationChannel = await interaction.guild.channels.create({
+      name: channelName,
+      type: 0, // GUILD_TEXT
+      parent: client.config.categories.verification,
+      permissionOverwrites: [
+        {
+          id: interaction.guild.id,
+          deny: ['ViewChannel']
+        },
+        {
+          id: interaction.user.id,
+          allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+        },
+        {
+          id: client.config.roles.moderator,
+          allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+        }
+      ]
+    });
+    
+    console.log('🔍 DEBUG: Channel created successfully:', verificationChannel.id);
 
-  // Send verification details to private channel
-  const verifyEmbed = new EmbedBuilder()
+    // Send verification details to private channel
+    const verifyEmbed = new EmbedBuilder()
     .setTitle('🎫 New TikTok Account Verification')
     .setDescription(`**User:** <@${interaction.user.id}>\n**Discord:** ${interaction.user.tag}`)
     .addFields(
@@ -287,10 +297,20 @@ async function handleTikTokVerificationModal(interaction, client) {
     components: [approveRow]
   });
 
-  await interaction.reply({
-    content: `✅ Your TikTok account verification has been submitted! Check ${verificationChannel} for updates.`,
-    ephemeral: true
-  });
+    await interaction.reply({
+      content: `✅ Your TikTok account verification has been submitted! Check ${verificationChannel} for updates.`,
+      ephemeral: true
+    });
+    
+    console.log('🔍 DEBUG: TikTok verification completed successfully');
+    
+  } catch (error) {
+    console.error('🔍 DEBUG: Error in TikTok verification:', error);
+    await interaction.reply({
+      content: `❌ Error creating verification channel: ${error.message}`,
+      ephemeral: true
+    });
+  }
 }
 
 async function handleWarmupVerificationModal(interaction, client) {
