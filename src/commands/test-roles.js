@@ -44,15 +44,15 @@ module.exports = {
         response += `**Can Manage Roles:**\n`;
         response += `• New Member: ${canManageNewMember ? '✅' : '❌'}\n`;
         response += `• Onboarding: ${canManageOnboarding ? '✅' : '❌'}\n`;
-      }
-      
-      // Test 5: Try to add onboarding role
-      if (onboardingRole && canManageOnboarding) {
-        try {
-          await member.roles.add(onboardingRole);
-          response += `\n✅ **Successfully added onboarding role!**`;
-        } catch (roleError) {
-          response += `\n❌ **Failed to add role:** ${roleError.message}`;
+        
+        // Test 5: Try to add onboarding role
+        if (onboardingRole && canManageOnboarding) {
+          try {
+            await member.roles.add(onboardingRole);
+            response += `\n✅ **Successfully added onboarding role!**`;
+          } catch (roleError) {
+            response += `\n❌ **Failed to add role:** ${roleError.message}`;
+          }
         }
       }
       
