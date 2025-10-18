@@ -27,7 +27,6 @@ module.exports = {
       subcommand
         .setName('payouts')
         .setDescription('Generate affiliate payouts (Admin only)')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     ),
 
   async execute(interaction, client) {
@@ -41,6 +40,13 @@ module.exports = {
       } else if (subcommand === 'leaderboard') {
         await this.handleReferralLeaderboard(interaction, client);
       } else if (subcommand === 'payouts') {
+        // Check admin permissions for payouts
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+          return interaction.reply({
+            content: '❌ You need administrator permissions to use this command.',
+            ephemeral: true
+          });
+        }
         await this.handleAffiliatePayouts(interaction, client);
       }
 
