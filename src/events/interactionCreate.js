@@ -48,6 +48,9 @@ async function handleModalSubmit(interaction, client) {
       await handleWarmupVerificationModal(interaction, client);
     } else if (customId === 'add_tiktok_account_modal') {
       await handleAddTikTokAccountModal(interaction, client);
+    } else if (customId === 'onboarding_ticket_modal') {
+      const onboardingSupportHandlers = require('../utils/onboardingSupportHandlers');
+      await onboardingSupportHandlers.handleTicketSubmit(interaction, client);
     } else if (customId === 'test_modal') {
       await handleTestModal(interaction, client);
     }
@@ -104,6 +107,21 @@ async function handleButtonInteraction(interaction, client) {
       return;
     } else if (customId === 'copy_referral_link') {
       await handleCopyReferralLink(interaction, client);
+      return;
+    }
+
+    // Handle onboarding support buttons
+    if (customId === 'create_onboarding_ticket') {
+      const onboardingSupportHandlers = require('../utils/onboardingSupportHandlers');
+      await onboardingSupportHandlers.handleCreateTicket(interaction, client);
+      return;
+    } else if (customId.startsWith('close_ticket_')) {
+      const onboardingSupportHandlers = require('../utils/onboardingSupportHandlers');
+      await onboardingSupportHandlers.handleCloseTicket(interaction, client);
+      return;
+    } else if (customId.startsWith('escalate_ticket_')) {
+      const onboardingSupportHandlers = require('../utils/onboardingSupportHandlers');
+      await onboardingSupportHandlers.handleEscalateTicket(interaction, client);
       return;
     }
 
