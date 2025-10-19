@@ -92,6 +92,19 @@ const userSchema = new mongoose.Schema({
   referral_invite_created_at: {
     type: Date,
     default: null
+  },
+  // TikTok Posts Tracking
+  tiktok_posts_count: {
+    type: Number,
+    default: 0
+  },
+  total_tiktok_views: {
+    type: Number,
+    default: 0
+  },
+  total_tiktok_tier1_views: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
