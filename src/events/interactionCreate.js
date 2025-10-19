@@ -805,9 +805,17 @@ async function handleTestModal(interaction, client) {
 
 async function handleAccountCreationVerification(interaction, client, action, userId) {
   try {
+    console.log(`🔍 Processing account creation verification: action=${action}, userId=${userId}`);
+    console.log(`🔍 User roles:`, interaction.member.roles.cache.map(r => r.name));
+    console.log(`🔍 Admin role ID: ${client.config.roles.admin}`);
+    console.log(`🔍 Moderator role ID: ${client.config.roles.moderator}`);
+    
     // Check if user has admin or moderator permissions
     const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
     const hasModeratorRole = interaction.member.roles.cache.has(client.config.roles.moderator);
+    
+    console.log(`🔍 Has admin role: ${hasAdminRole}`);
+    console.log(`🔍 Has moderator role: ${hasModeratorRole}`);
     
     if (!hasAdminRole && !hasModeratorRole) {
       return interaction.reply({
@@ -816,7 +824,13 @@ async function handleAccountCreationVerification(interaction, client, action, us
       });
     }
 
+    console.log(`🔍 Looking up user in database: ${userId}`);
     const user = await User.findOne({ discord_id: userId });
+    console.log(`🔍 User found: ${!!user}`);
+    if (user) {
+      console.log(`🔍 User role: ${user.role}`);
+    }
+    
     if (!user) {
       return interaction.reply({
         content: '❌ User not found in database.',
@@ -825,21 +839,30 @@ async function handleAccountCreationVerification(interaction, client, action, us
     }
 
     if (action === 'verify_account') {
+      console.log(`🔍 Verifying account for user: ${userId}`);
+      
       // Update user role to warming up
       user.role = 'Warming Up';
       user.verification_approved_at = new Date();
       await user.save();
+      console.log(`✅ User role updated to: ${user.role}`);
 
       // Update Discord roles
+      console.log(`🔍 Fetching Discord member: ${userId}`);
       const member = await interaction.guild.members.fetch(userId);
       const warmingUpRole = interaction.guild.roles.cache.get(client.config.roles.warmingUp);
       const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
       
+      console.log(`🔍 Warming up role ID: ${client.config.roles.warmingUp}, Found: ${!!warmingUpRole}`);
+      console.log(`🔍 Account created role ID: ${client.config.roles.accountCreated}, Found: ${!!accountCreatedRole}`);
+      
       if (accountCreatedRole && member.roles.cache.has(accountCreatedRole.id)) {
+        console.log(`🔍 Removing account created role from user`);
         await member.roles.remove(accountCreatedRole);
       }
       
       if (warmingUpRole) {
+        console.log(`🔍 Adding warming up role to user`);
         await member.roles.add(warmingUpRole);
       }
 
