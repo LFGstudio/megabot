@@ -88,6 +88,9 @@ module.exports = {
           resultMessage += `• Shares: ${video.shares.toLocaleString()}\n`;
           resultMessage += `• Caption: ${video.caption || 'No caption'}\n`;
           resultMessage += `• Author: ${video.author || username}\n`;
+          if (video.is_mock) {
+            resultMessage += `• ⚠️ **Mock Data** (scraping failed)\n`;
+          }
         });
       }
 
