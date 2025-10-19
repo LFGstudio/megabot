@@ -1007,6 +1007,7 @@ async function handleWarmupVerification(interaction, client, action, userId) {
       });
     }
 
+    console.log(`🔍 Processing action: ${action}`);
     if (action === 'verify') {
       // Update user role to clipper
       user.role = 'Clipper';
