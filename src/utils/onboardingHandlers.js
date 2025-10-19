@@ -168,13 +168,18 @@ class OnboardingHandlers {
         .setDescription('Almost there! Let\'s finalize your account branding and get verified.')
         .addFields(
           {
-            name: '📅 Day 3 Instructions',
-            value: '• Search "how to go viral" and interact with those videos\n• Keep scrolling and engaging with similar content\n• Finalize your account branding',
+            name: '📅 Day 3 — Brand Your Account:',
+            value: '• Username, display name, and profile photo should now be set\n• Make sure your bio matches the example:\n"Helping small creators grow 💖\nApp you\'re looking for is \'MegaViral: AI Creator Agent\'"\n• Your FYP should now mostly show "Go Viral" or creator-growth content',
             inline: false
           },
           {
             name: '🏷️ Final Branding Check',
             value: '• Username, display name, and profile photo should be set\n• Bio: "Helping small creators grow 💖\nApp you\'re looking for is \'MegaViral: AI Creator Agent\'"\n• Your FYP should show "Go Viral" or creator-growth content',
+            inline: false
+          },
+          {
+            name: '💖 Actions',
+            value: '• Engage like a real person (like, comment, follow) 15m twice a day.',
             inline: false
           },
           {
