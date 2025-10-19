@@ -168,10 +168,27 @@ class TikTokWebScraper {
 
   // Enhanced TikTok account video scraping with detailed metrics
   async scrapeAccountVideos(username) {
-    // First try direct API scraping
+    // Method 1: Try RapidAPI first (most reliable)
+    try {
+      const TikTokAPI = require('./tiktokAPI');
+      const tiktokAPI = new TikTokAPI(require('../config/config'));
+      
+      if (tiktokAPI.rapidApiKey) {
+        console.log(`🚀 Attempting RapidAPI for @${username}`);
+        const rapidApiResult = await tiktokAPI.fetchWithRapidAPI(username);
+        if (rapidApiResult.success && rapidApiResult.data.videos.length > 0) {
+          console.log(`✅ RapidAPI found ${rapidApiResult.data.videos.length} videos for @${username}`);
+          return rapidApiResult.data.videos;
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ RapidAPI failed for @${username}:`, error.message);
+    }
+    
+    // Method 2: Try direct API scraping
     const apiVideos = await this.scrapeAccountVideosDirectAPI(username);
     if (apiVideos.length > 0) {
-      console.log(`✅ API scraping found ${apiVideos.length} videos for @${username}`);
+      console.log(`✅ Direct API scraping found ${apiVideos.length} videos for @${username}`);
       return apiVideos;
     }
     

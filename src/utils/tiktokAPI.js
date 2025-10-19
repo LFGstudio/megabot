@@ -9,17 +9,36 @@ class TikTokAPI {
 
   async fetchUserStats(username) {
     try {
-      // This is a placeholder implementation
-      // In a real implementation, you would use one of these approaches:
-      
-      // 1. Official TikTok API (if available)
-      // 2. RapidAPI TikTok scraper
-      // 3. Apify TikTok scraper
-      // 4. Custom web scraping solution
-
       console.log(`🔍 Fetching TikTok stats for: ${username}`);
       
-      // Mock implementation for now
+      // Method 1: Try RapidAPI first (most reliable)
+      if (this.rapidApiKey) {
+        try {
+          console.log(`🚀 Attempting RapidAPI for @${username}`);
+          const rapidApiResult = await this.fetchWithRapidAPI(username);
+          if (rapidApiResult.success && rapidApiResult.data.videos.length > 0) {
+            console.log(`✅ RapidAPI successful for @${username}`);
+            return rapidApiResult;
+          }
+        } catch (error) {
+          console.log(`⚠️ RapidAPI failed for @${username}:`, error.message);
+        }
+      }
+      
+      // Method 2: Try Apify (if configured)
+      try {
+        console.log(`🔄 Attempting Apify for @${username}`);
+        const apifyResult = await this.fetchWithApify(username);
+        if (apifyResult.success) {
+          console.log(`✅ Apify successful for @${username}`);
+          return apifyResult;
+        }
+      } catch (error) {
+        console.log(`⚠️ Apify failed for @${username}:`, error.message);
+      }
+      
+      // Method 3: Fallback to mock data
+      console.log(`🎭 Using mock data for @${username}`);
       const mockStats = this.generateMockStats();
       
       return {
@@ -30,7 +49,8 @@ class TikTokAPI {
           tier1Views: mockStats.tier1Views,
           followers: mockStats.followers,
           videos: mockStats.videos,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
+          source: 'mock'
         }
       };
 
@@ -59,23 +79,55 @@ class TikTokAPI {
     };
   }
 
-  // Placeholder for RapidAPI implementation
+  // Enhanced RapidAPI implementation
   async fetchWithRapidAPI(username) {
     try {
-      const options = {
-        method: 'GET',
-        url: 'https://tiktok-scraper2.p.rapidapi.com/user/info',
-        params: {
-          username: username
+      console.log(`🔍 Fetching TikTok data via RapidAPI for @${username}`);
+      
+      // Try multiple RapidAPI endpoints for comprehensive data
+      const endpoints = [
+        {
+          url: 'https://tiktok-scraper2.p.rapidapi.com/user/info',
+          params: { username: username },
+          host: 'tiktok-scraper2.p.rapidapi.com'
         },
-        headers: {
-          'X-RapidAPI-Key': this.rapidApiKey,
-          'X-RapidAPI-Host': 'tiktok-scraper2.p.rapidapi.com'
+        {
+          url: 'https://tiktok-scraper2.p.rapidapi.com/user/posts',
+          params: { username: username, count: 20 },
+          host: 'tiktok-scraper2.p.rapidapi.com'
         }
-      };
+      ];
 
-      const response = await axios.request(options);
-      return this.parseRapidAPIResponse(response.data);
+      const results = [];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const options = {
+            method: 'GET',
+            url: endpoint.url,
+            params: endpoint.params,
+            headers: {
+              'X-RapidAPI-Key': this.rapidApiKey,
+              'X-RapidAPI-Host': endpoint.host
+            }
+          };
+
+          const response = await axios.request(options);
+          results.push(response.data);
+          
+          // Add delay between requests to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+        } catch (error) {
+          console.log(`⚠️ RapidAPI endpoint failed: ${endpoint.url}`, error.message);
+        }
+      }
+
+      if (results.length > 0) {
+        return this.parseRapidAPIResponse(results, username);
+      } else {
+        throw new Error('All RapidAPI endpoints failed');
+      }
 
     } catch (error) {
       console.error('RapidAPI error:', error);
@@ -83,16 +135,70 @@ class TikTokAPI {
     }
   }
 
-  parseRapidAPIResponse(data) {
-    // Parse the response from RapidAPI
-    // This would need to be implemented based on the actual API response structure
-    
-    return {
-      totalViews: data.totalViews || 0,
-      tier1Views: this.calculateTier1Views(data), // Would need to implement this
-      followers: data.followers || 0,
-      videos: data.videos || 0
-    };
+  parseRapidAPIResponse(dataArray, username) {
+    try {
+      console.log(`📊 Parsing RapidAPI response for @${username}`);
+      
+      const videos = [];
+      let userInfo = null;
+      
+      // Process each API response
+      for (const data of dataArray) {
+        // Handle user info response
+        if (data.userInfo || data.user) {
+          userInfo = data.userInfo || data.user;
+        }
+        
+        // Handle posts/videos response
+        if (data.videos || data.posts || data.aweme_list) {
+          const videoList = data.videos || data.posts || data.aweme_list;
+          
+          if (Array.isArray(videoList)) {
+            videoList.forEach((video, index) => {
+              if (video && (video.id || video.aweme_id)) {
+                const videoId = video.id || video.aweme_id;
+                videos.push({
+                  id: videoId,
+                  url: `https://www.tiktok.com/@${username}/video/${videoId}`,
+                  caption: video.desc || video.description || '',
+                  posted_at: new Date((video.create_time || video.createTime) * 1000),
+                  views: video.play_count || video.playCount || video.statistics?.play_count || 0,
+                  likes: video.digg_count || video.diggCount || video.statistics?.digg_count || 0,
+                  comments: video.comment_count || video.commentCount || video.statistics?.comment_count || 0,
+                  shares: video.share_count || video.shareCount || video.statistics?.share_count || 0,
+                  tier1_views: Math.floor((video.play_count || video.playCount || 0) * 0.3),
+                  source: 'rapidapi'
+                });
+              }
+            });
+          }
+        }
+      }
+      
+      console.log(`✅ RapidAPI parsed: ${videos.length} videos for @${username}`);
+      
+      return {
+        success: true,
+        data: {
+          username: username,
+          videos: videos,
+          userInfo: userInfo,
+          totalViews: videos.reduce((sum, video) => sum + video.views, 0),
+          tier1Views: videos.reduce((sum, video) => sum + video.tier1_views, 0),
+          followers: userInfo?.follower_count || userInfo?.followers || 0,
+          videos: videos.length,
+          lastUpdated: new Date(),
+          source: 'rapidapi'
+        }
+      };
+      
+    } catch (error) {
+      console.error('Error parsing RapidAPI response:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 
   calculateTier1Views(userData) {
