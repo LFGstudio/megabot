@@ -63,17 +63,17 @@ class OnboardingHandlers {
         .addFields(
           {
             name: '🎯 Create Your TikTok Account',
-            value: '• Use email or phone login\n• Make sure you\'re in a Tier 1 country or use a VPN\n• Choose a clean, professional username',
+            value: '• Use email or phone login\n• Make sure you\'re in a Tier 1 country or use a VPN before downloading TikTok!\n• Choose a clean, professional username',
             inline: false
           },
           {
             name: '👤 Username Format Examples',
-            value: '• amanda.goviral\n• harper.viral\n• growth.claudia\n• tips.by.jenna\n\nKeep it clean, short, and authentic!',
+            value: '• amanda.goviral\n• harper.viral\n• growth.claudia\n• tips.by.jenna\n\nFollow this exactly. It\'s what makes your videos go viral 🚀',
             inline: false
           },
           {
-            name: '🖼️ Profile Setup',
-            value: '• Use a friendly selfie or professional avatar\n• Display name: "Grow With [Your Name]"\n• Bio: "Helping small creators grow 💖\nApp you\'re looking for is \'MegaViral: AI Creator Agent\'"',
+            name: '📅 Day 1:',
+            value: '• Scroll naturally on your FYP — no searching\n• Engage like a real person (like, comment, follow)\n• If "Go Viral" niche appears, engage with it',
             inline: false
           }
         )
