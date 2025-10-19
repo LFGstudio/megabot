@@ -212,6 +212,8 @@ async function handleModalSubmit(interaction, client) {
       await handleTikTokVerificationModal(interaction, client);
     } else if (customId === 'warmup_verification_modal') {
       await handleWarmupVerificationModal(interaction, client);
+    } else if (customId === 'add_tiktok_account_modal') {
+      await handleAddTikTokAccountModal(interaction, client);
     }
 
   } catch (error) {
@@ -485,6 +487,25 @@ async function handleButtonInteraction(interaction, client) {
       return;
     } else if (customId === 'referral_tips') {
       await ReferralChannelHandlers.handleReferralTips(interaction, client);
+      return;
+    }
+
+    // Handle account stats buttons
+    const AccountStatsHandlers = require('../utils/accountStatsHandlers');
+    if (customId === 'add_new_account') {
+      await AccountStatsHandlers.handleAddNewAccount(interaction, client);
+      return;
+    } else if (customId === 'view_my_accounts') {
+      await AccountStatsHandlers.handleViewMyAccounts(interaction, client);
+      return;
+    } else if (customId === 'view_my_stats') {
+      await AccountStatsHandlers.handleViewMyStats(interaction, client);
+      return;
+    } else if (customId === 'view_my_earnings') {
+      await AccountStatsHandlers.handleViewMyEarnings(interaction, client);
+      return;
+    } else if (customId === 'account_help') {
+      await AccountStatsHandlers.handleAccountHelp(interaction, client);
       return;
     }
     
