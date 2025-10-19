@@ -62,6 +62,22 @@ async function handleAddNewAccount(interaction, client) {
       .setRequired(false)
       .setMaxLength(50);
 
+    const countryInput = new TextInputBuilder()
+      .setCustomId('country')
+      .setLabel('Country (for payouts)')
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder('e.g., United States, Canada, UK')
+      .setRequired(true)
+      .setMaxLength(50);
+
+    const paymentMethodInput = new TextInputBuilder()
+      .setCustomId('payment_method')
+      .setLabel('Payment Method')
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder('PayPal or Wise')
+      .setRequired(true)
+      .setMaxLength(20);
+
     const notesInput = new TextInputBuilder()
       .setCustomId('account_notes')
       .setLabel('Notes (optional)')
@@ -72,9 +88,11 @@ async function handleAddNewAccount(interaction, client) {
 
     const firstActionRow = new ActionRowBuilder().addComponents(usernameInput);
     const secondActionRow = new ActionRowBuilder().addComponents(displayNameInput);
-    const thirdActionRow = new ActionRowBuilder().addComponents(notesInput);
+    const thirdActionRow = new ActionRowBuilder().addComponents(countryInput);
+    const fourthActionRow = new ActionRowBuilder().addComponents(paymentMethodInput);
+    const fifthActionRow = new ActionRowBuilder().addComponents(notesInput);
 
-    modal.addComponents(firstActionRow, secondActionRow, thirdActionRow);
+    modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow);
 
     await interaction.showModal(modal);
 

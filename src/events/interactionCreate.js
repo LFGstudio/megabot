@@ -916,21 +916,23 @@ async function handleButtonInteraction(interaction, client) {
   }
 }
 
-async function handleAddTikTokAccountModal(interaction, client) {
-  try {
-    const username = interaction.fields.getTextInputValue('tiktok_username');
-    const displayName = interaction.fields.getTextInputValue('display_name') || username;
-    const notes = interaction.fields.getTextInputValue('account_notes') || '';
+  async function handleAddTikTokAccountModal(interaction, client) {
+    try {
+      const username = interaction.fields.getTextInputValue('tiktok_username');
+      const displayName = interaction.fields.getTextInputValue('display_name') || username;
+      const country = interaction.fields.getTextInputValue('country');
+      const paymentMethod = interaction.fields.getTextInputValue('payment_method');
+      const notes = interaction.fields.getTextInputValue('account_notes') || '';
 
-    // Check if account already exists
-    const TikTokAccount = require('../models/TikTokAccount');
-    const existingAccount = await TikTokAccount.getAccountByUsername(username);
-    if (existingAccount) {
-      return interaction.reply({
-        content: '❌ This TikTok account is already being tracked by another user.',
-        ephemeral: true
-      });
-    }
+      // Check if account already exists
+      const TikTokAccount = require('../models/TikTokAccount');
+      const existingAccount = await TikTokAccount.getAccountByUsername(username);
+      if (existingAccount) {
+        return interaction.reply({
+          content: '❌ This TikTok account is already being tracked by another user.',
+          ephemeral: true
+        });
+      }
 
     // Create verification channel
     const verificationCategory = interaction.guild.channels.cache.get(client.config.categories.verification);
@@ -941,8 +943,10 @@ async function handleAddTikTokAccountModal(interaction, client) {
       });
     }
 
-    const channelName = `tiktok-verify-${username}-${interaction.user.username}`;
-    const channel = await interaction.guild.channels.create({
+      const channelName = `tiktok-verify-${username}-${interaction.user.username}`;
+      console.log(`🔧 Creating verification channel: ${channelName}`);
+      
+      const channel = await interaction.guild.channels.create({
       name: channelName,
       type: ChannelType.GuildText,
       parent: verificationCategory,
@@ -964,22 +968,26 @@ async function handleAddTikTokAccountModal(interaction, client) {
           id: client.config.roles.moderator || client.config.roles.admin,
           allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
         }
-      ]
-    });
+        ]
+      });
 
-    // Create verification embed with account details
-    const verificationEmbed = new EmbedBuilder()
-      .setTitle('📱 TikTok Account Verification')
-      .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Account:** @${username}`)
-      .setColor(0xffa500)
-      .addFields(
-        { name: '👤 Username', value: `@${username}`, inline: true },
-        { name: '📝 Display Name', value: displayName, inline: true },
-        { name: '📋 Notes', value: notes || 'None provided', inline: false },
-        { name: '🔗 Account URL', value: `https://www.tiktok.com/@${username}`, inline: false }
-      )
-      .setFooter({ text: 'Review the account details and click Verify or Reject' })
-      .setTimestamp();
+      console.log(`✅ Verification channel created successfully: ${channel.id}`);
+
+      // Create verification embed with account details
+      const verificationEmbed = new EmbedBuilder()
+        .setTitle('📱 TikTok Account Verification Request')
+        .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Account:** @${username}`)
+        .setColor(0xffa500)
+        .addFields(
+          { name: '👤 TikTok Username', value: `@${username}`, inline: true },
+          { name: '📝 Display Name', value: displayName, inline: true },
+          { name: '🌍 Country', value: country, inline: true },
+          { name: '💳 Payment Method', value: paymentMethod, inline: true },
+          { name: '🔗 TikTok Account URL', value: `https://www.tiktok.com/@${username}`, inline: false },
+          { name: '📋 Additional Notes', value: notes || 'None provided', inline: false }
+        )
+        .setFooter({ text: 'Review all details and click Verify Account or Reject Account' })
+        .setTimestamp();
 
     // Create action row with verification buttons
     const row = new ActionRowBuilder()
@@ -994,7 +1002,10 @@ async function handleAddTikTokAccountModal(interaction, client) {
           .setStyle(ButtonStyle.Danger)
       );
 
-    await channel.send({ embeds: [verificationEmbed], components: [row] });
+      // Send the verification message to the channel
+      console.log(`📱 Sending verification message to channel ${channel.id}`);
+      const verificationMessage = await channel.send({ embeds: [verificationEmbed], components: [row] });
+      console.log(`✅ Verification message sent successfully: ${verificationMessage.id}`);
 
     // Send confirmation to user
     const confirmEmbed = new EmbedBuilder()
