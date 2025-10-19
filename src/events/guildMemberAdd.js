@@ -95,7 +95,7 @@ module.exports = {
         console.log(`🏷️ Assigned New Member role to: ${member.user.tag}`);
       }
 
-      // Send welcome DM
+      // Send welcome DM with custom image if available
       try {
         const welcomeEmbed = new EmbedBuilder()
           .setTitle('🎉 Welcome to MegaViral!')
@@ -110,10 +110,51 @@ module.exports = {
           .setFooter({ text: 'MegaBot Welcome System' })
           .setTimestamp();
 
+        // Add custom DM image if available
+        if (client.welcomeImages && client.welcomeImages.dm) {
+          welcomeEmbed.setImage(client.welcomeImages.dm.imageUrl);
+          if (client.welcomeImages.dm.title) {
+            welcomeEmbed.setTitle(client.welcomeImages.dm.title);
+          }
+        }
+
         await member.send({ embeds: [welcomeEmbed] });
         console.log(`📧 Sent welcome DM to: ${member.user.tag}`);
       } catch (dmError) {
         console.log(`Could not send welcome DM to ${member.user.tag}:`, dmError.message);
+      }
+
+      // Post welcome message in welcome channel with custom image
+      try {
+        const welcomeChannel = member.guild.channels.cache.find(
+          channel => channel.name.toLowerCase().includes('welcome') && channel.isTextBased()
+        );
+
+        if (welcomeChannel) {
+          const channelWelcomeEmbed = new EmbedBuilder()
+            .setTitle('👋 Welcome to MegaViral!')
+            .setColor(0x00ff00)
+            .setDescription(`Welcome <@${member.id}>! We're excited to have you join our community.`)
+            .addFields(
+              { name: '🚀 Getting Started', value: 'Complete the onboarding process to begin earning!', inline: false },
+              { name: '📋 Next Steps', value: '1. Verify your TikTok account\n2. Complete warm-up process\n3. Start tracking earnings', inline: false }
+            )
+            .setFooter({ text: 'MegaViral Welcome System' })
+            .setTimestamp();
+
+          // Add custom welcome channel image if available
+          if (client.welcomeImages && client.welcomeImages.welcomeChannel) {
+            channelWelcomeEmbed.setImage(client.welcomeImages.welcomeChannel.imageUrl);
+            if (client.welcomeImages.welcomeChannel.title) {
+              channelWelcomeEmbed.setTitle(client.welcomeImages.welcomeChannel.title);
+            }
+          }
+
+          await welcomeChannel.send({ embeds: [channelWelcomeEmbed] });
+          console.log(`📢 Posted welcome message in ${welcomeChannel.name} for: ${member.user.tag}`);
+        }
+      } catch (channelError) {
+        console.log(`Could not post welcome message in channel:`, channelError.message);
       }
 
       // Log the action
