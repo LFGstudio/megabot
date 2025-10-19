@@ -12,21 +12,41 @@ module.exports = {
       subcommand
         .setName('welcome')
         .setDescription('Create the welcome message in #welcome channel')
+        .addAttachmentOption(option =>
+          option.setName('image')
+            .setDescription('Welcome image to display')
+            .setRequired(false)
+        )
     )
     .addSubcommand(subcommand =>
       subcommand
         .setName('about')
         .setDescription('Create the about message in #about-megaviral channel')
+        .addAttachmentOption(option =>
+          option.setName('image')
+            .setDescription('About image to display')
+            .setRequired(false)
+        )
     )
     .addSubcommand(subcommand =>
       subcommand
         .setName('create-account')
         .setDescription('Create the create account message in #create-your-account channel')
+        .addAttachmentOption(option =>
+          option.setName('image')
+            .setDescription('Create account image to display')
+            .setRequired(false)
+        )
     )
     .addSubcommand(subcommand =>
       subcommand
         .setName('warmup-guide')
         .setDescription('Create the warm-up guide message in #warm-up-guide channel')
+        .addAttachmentOption(option =>
+          option.setName('image')
+            .setDescription('Warmup guide image to display')
+            .setRequired(false)
+        )
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -54,6 +74,8 @@ module.exports = {
   },
 
   async createWelcomeMessage(interaction, client) {
+    const imageAttachment = interaction.options.getAttachment('image');
+    
     const welcomeEmbed = new EmbedBuilder()
       .setTitle('👋 Welcome to MegaViral!')
       .setDescription('We pay creators to post viral TikTok clips using our content library.\n\nTo get started, follow our quick 3-step onboarding process to get verified and start earning 💸')
@@ -73,6 +95,11 @@ module.exports = {
       .setFooter({ text: 'Click "Start Onboarding" below to begin your journey!' })
       .setTimestamp();
 
+    // Add image if provided
+    if (imageAttachment && imageAttachment.contentType?.startsWith('image/')) {
+      welcomeEmbed.setImage(imageAttachment.url);
+    }
+
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
@@ -89,6 +116,8 @@ module.exports = {
   },
 
   async createAboutMessage(interaction, client) {
+    const imageAttachment = interaction.options.getAttachment('image');
+    
     const aboutEmbed = new EmbedBuilder()
       .setTitle('💰 How MegaViral Works')
       .setDescription('Post TikTok videos from our content library and earn payouts based on your views!')
@@ -113,6 +142,11 @@ module.exports = {
       .setFooter({ text: 'Ready to get verified? Click below to start!' })
       .setTimestamp();
 
+    // Add image if provided
+    if (imageAttachment && imageAttachment.contentType?.startsWith('image/')) {
+      aboutEmbed.setImage(imageAttachment.url);
+    }
+
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
@@ -129,6 +163,8 @@ module.exports = {
   },
 
   async createAccountMessage(interaction, client) {
+    const imageAttachment = interaction.options.getAttachment('image');
+    
     const accountEmbed = new EmbedBuilder()
       .setTitle('🎯 Create Your New TikTok Account')
       .setDescription('To qualify for payouts, you must post using a new, dedicated TikTok account. This helps the algorithm push your videos faster and ensures we can track performance correctly.')
@@ -153,6 +189,11 @@ module.exports = {
       .setFooter({ text: 'Once your TikTok account is ready, click below to submit it!' })
       .setTimestamp();
 
+    // Add image if provided
+    if (imageAttachment && imageAttachment.contentType?.startsWith('image/')) {
+      accountEmbed.setImage(imageAttachment.url);
+    }
+
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
@@ -169,6 +210,8 @@ module.exports = {
   },
 
   async createWarmupMessage(interaction, client) {
+    const imageAttachment = interaction.options.getAttachment('image');
+    
     const warmupEmbed = new EmbedBuilder()
       .setTitle('🔥 Warm Up the Algorithm — 3-Day Process')
       .setDescription('Follow this exactly. It\'s what makes your videos go viral 🚀')
@@ -192,6 +235,11 @@ module.exports = {
       .setColor(0xff4444)
       .setFooter({ text: 'Once your FYP is warmed up, click below to submit for verification!' })
       .setTimestamp();
+
+    // Add image if provided
+    if (imageAttachment && imageAttachment.contentType?.startsWith('image/')) {
+      warmupEmbed.setImage(imageAttachment.url);
+    }
 
     const row = new ActionRowBuilder()
       .addComponents(
