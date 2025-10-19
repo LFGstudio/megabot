@@ -1009,11 +1009,14 @@ async function handleWarmupVerification(interaction, client, action, userId) {
 
     console.log(`🔍 Processing action: ${action}`);
     if (action === 'verify') {
+      console.log(`🔍 Starting verify action processing`);
       // Update user role to clipper
       user.role = 'Clipper';
       user.warmup_done = true;
       user.warmup_approved_at = new Date();
+      console.log(`🔍 Saving user to database`);
       await user.save();
+      console.log(`🔍 User saved successfully`);
 
       // Update Discord roles
       const member = await interaction.guild.members.fetch(userId);
