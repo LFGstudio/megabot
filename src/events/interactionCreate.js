@@ -254,6 +254,16 @@ async function handleAccountVerificationModal(interaction, client) {
       });
     }
 
+    // Check if bot has permission to create channels in this category
+    const botMember = interaction.guild.members.cache.get(client.user.id);
+    const categoryPermissions = verificationCategory.permissionsFor(botMember);
+    if (!categoryPermissions.has('ManageChannels')) {
+      return interaction.reply({
+        content: '❌ Bot does not have permission to create channels in the verification category. Please contact an administrator.',
+        ephemeral: true
+      });
+    }
+
     const channelName = `account-verify-${username}-${interaction.user.username}`;
     const channel = await interaction.guild.channels.create({
       name: channelName,
@@ -309,7 +319,22 @@ async function handleAccountVerificationModal(interaction, client) {
       );
 
     // Send the verification message to the channel
-    await channel.send({ embeds: [verificationEmbed], components: [row] });
+    try {
+      await channel.send({ embeds: [verificationEmbed], components: [row] });
+    } catch (sendError) {
+      console.error('Error sending verification message:', sendError);
+      // If we can't send to the channel, delete it and inform the user
+      try {
+        await channel.delete('Failed to send verification message');
+      } catch (deleteError) {
+        console.error('Error deleting verification channel:', deleteError);
+      }
+      
+      return interaction.reply({
+        content: '❌ Failed to create verification channel. Please ensure the bot has proper permissions in the verification category.',
+        ephemeral: true
+      });
+    }
 
     // Send confirmation to user
     const confirmEmbed = new EmbedBuilder()
@@ -414,7 +439,22 @@ async function handleTikTokVerificationModal(interaction, client) {
           .setStyle(ButtonStyle.Danger)
       );
 
-    await channel.send({ embeds: [verificationEmbed], components: [row] });
+    try {
+      await channel.send({ embeds: [verificationEmbed], components: [row] });
+    } catch (sendError) {
+      console.error('Error sending verification message:', sendError);
+      // If we can't send to the channel, delete it and inform the user
+      try {
+        await channel.delete('Failed to send verification message');
+      } catch (deleteError) {
+        console.error('Error deleting verification channel:', deleteError);
+      }
+      
+      return interaction.reply({
+        content: '❌ Failed to create verification channel. Please ensure the bot has proper permissions in the verification category.',
+        ephemeral: true
+      });
+    }
 
     const confirmEmbed = new EmbedBuilder()
       .setTitle('✅ Verification Submitted')
@@ -508,7 +548,22 @@ async function handleWarmupVerificationModal(interaction, client) {
           .setStyle(ButtonStyle.Danger)
       );
 
-    await channel.send({ embeds: [verificationEmbed], components: [row] });
+    try {
+      await channel.send({ embeds: [verificationEmbed], components: [row] });
+    } catch (sendError) {
+      console.error('Error sending verification message:', sendError);
+      // If we can't send to the channel, delete it and inform the user
+      try {
+        await channel.delete('Failed to send verification message');
+      } catch (deleteError) {
+        console.error('Error deleting verification channel:', deleteError);
+      }
+      
+      return interaction.reply({
+        content: '❌ Failed to create verification channel. Please ensure the bot has proper permissions in the verification category.',
+        ephemeral: true
+      });
+    }
 
     const confirmEmbed = new EmbedBuilder()
       .setTitle('✅ Verification Submitted')
@@ -651,8 +706,23 @@ async function handleAddTikTokAccountModal(interaction, client) {
 
     // Send the verification message to the channel
     console.log(`📱 Sending verification message to channel ${channel.id}`);
-    const verificationMessage = await channel.send({ embeds: [verificationEmbed], components: [row] });
-    console.log(`✅ Verification message sent successfully: ${verificationMessage.id}`);
+    try {
+      const verificationMessage = await channel.send({ embeds: [verificationEmbed], components: [row] });
+      console.log(`✅ Verification message sent successfully: ${verificationMessage.id}`);
+    } catch (sendError) {
+      console.error('Error sending verification message:', sendError);
+      // If we can't send to the channel, delete it and inform the user
+      try {
+        await channel.delete('Failed to send verification message');
+      } catch (deleteError) {
+        console.error('Error deleting verification channel:', deleteError);
+      }
+      
+      return interaction.reply({
+        content: '❌ Failed to create verification channel. Please ensure the bot has proper permissions in the verification category.',
+        ephemeral: true
+      });
+    }
 
     // Send confirmation to user
     const confirmEmbed = new EmbedBuilder()
