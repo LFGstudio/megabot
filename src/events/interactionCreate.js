@@ -824,9 +824,13 @@ async function handleTestModal(interaction, client) {
 async function handleAccountCreationVerification(interaction, client, action, userId) {
   try {
     console.log(`🔍 Processing account creation verification: action=${action}, userId=${userId}`);
-    console.log(`🔍 User roles:`, interaction.member.roles.cache.map(r => r.name));
+    console.log(`🔍 User roles:`, interaction.member.roles.cache.map(r => `${r.name} (${r.id})`));
     console.log(`🔍 Admin role ID: ${client.config.roles.admin}`);
     console.log(`🔍 Moderator role ID: ${client.config.roles.moderator}`);
+    console.log(`🔍 Environment variables:`, {
+      ADMIN_ROLE_ID: process.env.ADMIN_ROLE_ID,
+      MODERATOR_ROLE_ID: process.env.MODERATOR_ROLE_ID
+    });
     
     // Check if user has admin or moderator permissions
     const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
