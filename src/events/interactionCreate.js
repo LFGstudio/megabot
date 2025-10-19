@@ -66,6 +66,7 @@ async function handleButtonInteraction(interaction, client) {
 
   try {
     const customId = interaction.customId;
+    console.log(`🔍 Button clicked: ${customId}`);
     
     // Handle ticket system buttons
     if (customId.startsWith('ticket_')) {
@@ -156,9 +157,11 @@ async function handleButtonInteraction(interaction, client) {
 
     // Handle account creation verification
     if (customId.startsWith('verify_account_creation_') || customId.startsWith('reject_account_creation_')) {
+      console.log(`🔍 Handling account creation verification: ${customId}`);
       const userId = customId.split('_')[3];
       const action = customId.split('_')[1] + '_' + customId.split('_')[2]; // 'verify_account' or 'reject_account'
       
+      console.log(`🔍 Parsed - userId: ${userId}, action: ${action}`);
       await handleAccountCreationVerification(interaction, client, action, userId);
       return;
     }
