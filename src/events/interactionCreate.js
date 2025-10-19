@@ -38,7 +38,9 @@ async function handleModalSubmit(interaction, client) {
   try {
     const customId = interaction.customId;
 
-    if (customId === 'tiktok_verification_modal') {
+    if (customId === 'account_verification_modal') {
+      await handleAccountVerificationModal(interaction, client);
+    } else if (customId === 'tiktok_verification_modal') {
       await handleTikTokVerificationModal(interaction, client);
     } else if (customId === 'warmup_verification_modal') {
       await handleWarmupVerificationModal(interaction, client);
@@ -152,7 +154,25 @@ async function handleButtonInteraction(interaction, client) {
       return;
     }
 
-    // Handle verification approval/rejection
+    // Handle account creation verification
+    if (customId.startsWith('verify_account_creation_') || customId.startsWith('reject_account_creation_')) {
+      const userId = customId.split('_')[3];
+      const action = customId.split('_')[1] + '_' + customId.split('_')[2]; // 'verify_account' or 'reject_account'
+      
+      await handleAccountCreationVerification(interaction, client, action, userId);
+      return;
+    }
+
+    // Handle warmup verification
+    if (customId.startsWith('verify_warmup_') || customId.startsWith('reject_warmup_')) {
+      const userId = customId.split('_')[2];
+      const action = customId.split('_')[1]; // 'verify' or 'reject'
+      
+      await handleWarmupVerification(interaction, client, action, userId);
+      return;
+    }
+
+    // Handle verification approval/rejection (legacy)
     if (customId.startsWith('verify_approve_') || customId.startsWith('verify_reject_')) {
       const userId = customId.split('_')[2];
       const action = customId.split('_')[1];
@@ -211,6 +231,112 @@ async function handleButtonInteraction(interaction, client) {
     console.error('Error handling button interaction:', error);
     await interaction.reply({
       content: '❌ An error occurred while processing your request.',
+      ephemeral: true
+    });
+  }
+}
+
+async function handleAccountVerificationModal(interaction, client) {
+  try {
+    const username = interaction.fields.getTextInputValue('tiktok_username');
+    const profileLink = interaction.fields.getTextInputValue('profile_link');
+    const country = interaction.fields.getTextInputValue('country');
+    const paymentMethod = interaction.fields.getTextInputValue('payment_method');
+
+    // Create verification channel
+    const verificationCategory = interaction.guild.channels.cache.get(client.config.categories.verification);
+    if (!verificationCategory) {
+      return interaction.reply({
+        content: '❌ Verification category not found. Please contact an administrator.',
+        ephemeral: true
+      });
+    }
+
+    const channelName = `account-verify-${username}-${interaction.user.username}`;
+    const channel = await interaction.guild.channels.create({
+      name: channelName,
+      type: ChannelType.GuildText,
+      parent: verificationCategory,
+      topic: `Account Creation Verification for ${interaction.user.tag}`,
+      permissionOverwrites: [
+        {
+          id: interaction.guild.roles.everyone.id,
+          deny: [PermissionFlagsBits.ViewChannel]
+        },
+        {
+          id: interaction.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
+        },
+        {
+          id: client.config.roles.admin,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
+        },
+        {
+          id: client.config.roles.moderator || client.config.roles.admin,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
+        }
+      ]
+    });
+
+    // Create verification embed
+    const verificationEmbed = new EmbedBuilder()
+      .setTitle('📱 Account Creation Verification Request')
+      .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Request:** Account Creation Verification`)
+      .setColor(0xffa500)
+      .addFields(
+        { name: '👤 TikTok Username', value: `@${username}`, inline: true },
+        { name: '🌍 Country', value: country, inline: true },
+        { name: '💳 Payment Method', value: paymentMethod, inline: true },
+        { name: '🔗 TikTok Profile Link', value: profileLink, inline: false },
+        { name: '📋 Verification Type', value: 'Account Creation → Warm-up Role', inline: false }
+      )
+      .setFooter({ text: 'Review the information and click Verify to approve account creation' })
+      .setTimestamp();
+
+    // Create action row with verification buttons
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId(`verify_account_creation_${interaction.user.id}`)
+          .setLabel('✅ Verify Account Creation')
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId(`reject_account_creation_${interaction.user.id}`)
+          .setLabel('❌ Reject Account Creation')
+          .setStyle(ButtonStyle.Danger)
+      );
+
+    // Send the verification message to the channel
+    await channel.send({ embeds: [verificationEmbed], components: [row] });
+
+    // Send confirmation to user
+    const confirmEmbed = new EmbedBuilder()
+      .setTitle('✅ Account Creation Verification Submitted')
+      .setDescription(`Your account creation has been submitted for verification.`)
+      .setColor(0x00ff00)
+      .addFields(
+        { name: '📱 Account', value: `@${username}`, inline: true },
+        { name: '📋 Channel', value: `<#${channel.id}>`, inline: true },
+        { name: '⏰ Status', value: 'Pending Review', inline: true }
+      )
+      .setFooter({ text: 'A moderator will review your account shortly' })
+      .setTimestamp();
+
+    await interaction.reply({
+      embeds: [confirmEmbed],
+      ephemeral: true
+    });
+
+    // Log the action
+    await client.logAction(
+      'Account Creation Verification Requested',
+      `<@${interaction.user.id}> requested account creation verification for TikTok account @${username}`
+    );
+
+  } catch (error) {
+    console.error('Error in handleAccountVerificationModal:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while processing your account creation verification request.',
       ephemeral: true
     });
   }
@@ -352,26 +478,27 @@ async function handleWarmupVerificationModal(interaction, client) {
 
     // Create verification embed
     const verificationEmbed = new EmbedBuilder()
-      .setTitle('🔥 Warm-up Verification')
-      .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)`)
+      .setTitle('🔥 Warm-up Verification Request')
+      .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Request:** Warm-up Verification`)
       .setColor(0xffa500)
       .addFields(
-        { name: '✅ Warm-up Completed', value: warmupCompleted, inline: true },
-        { name: '🔗 Profile Link', value: profileLink, inline: true },
-        { name: '📸 FYP Screenshot', value: fypScreenshot, inline: false }
+        { name: '✅ Warm-up Completed', value: warmupCompleted, inline: false },
+        { name: '🔗 Updated Profile Link', value: profileLink, inline: false },
+        { name: '📸 FYP Screenshot Description', value: fypScreenshot, inline: false },
+        { name: '📋 Verification Type', value: 'Warm-up → Clipper Role', inline: false }
       )
-      .setFooter({ text: 'Review the information and click Verify or Reject' })
+      .setFooter({ text: 'Review the information and click Verify to approve warm-up completion' })
       .setTimestamp();
 
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
-          .setCustomId(`verify_approve_${interaction.user.id}`)
-          .setLabel('✅ Verify')
+          .setCustomId(`verify_warmup_${interaction.user.id}`)
+          .setLabel('✅ Verify Warm-up → Clipper')
           .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
-          .setCustomId(`verify_reject_${interaction.user.id}`)
-          .setLabel('❌ Reject')
+          .setCustomId(`reject_warmup_${interaction.user.id}`)
+          .setLabel('❌ Reject Warm-up')
           .setStyle(ButtonStyle.Danger)
       );
 
@@ -565,6 +692,179 @@ async function handleTestModal(interaction, client) {
     console.error('Error in handleTestModal:', error);
     await interaction.reply({
       content: '❌ Test modal failed.',
+      ephemeral: true
+    });
+  }
+}
+
+async function handleAccountCreationVerification(interaction, client, action, userId) {
+  try {
+    // Check if user has admin or moderator permissions
+    const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
+    const hasModeratorRole = interaction.member.roles.cache.has(client.config.roles.moderator);
+    
+    if (!hasAdminRole && !hasModeratorRole) {
+      return interaction.reply({
+        content: '❌ You need admin or moderator permissions to approve/reject verifications.',
+        ephemeral: true
+      });
+    }
+
+    const user = await User.findOne({ discord_id: userId });
+    if (!user) {
+      return interaction.reply({
+        content: '❌ User not found in database.',
+        ephemeral: true
+      });
+    }
+
+    if (action === 'verify_account') {
+      // Update user role to warming up
+      user.role = 'Warming Up';
+      user.verification_approved_at = new Date();
+      await user.save();
+
+      // Update Discord roles
+      const member = await interaction.guild.members.fetch(userId);
+      const warmingUpRole = interaction.guild.roles.cache.get(client.config.roles.warmingUp);
+      const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
+      
+      if (accountCreatedRole && member.roles.cache.has(accountCreatedRole.id)) {
+        await member.roles.remove(accountCreatedRole);
+      }
+      
+      if (warmingUpRole) {
+        await member.roles.add(warmingUpRole);
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ Account Creation Verified')
+        .setDescription(`User <@${userId}> has been verified and promoted to **Warming Up** role.`)
+        .setColor(0x00ff00)
+        .addFields(
+          { name: 'New Role', value: 'Warming Up', inline: true },
+          { name: 'Verified By', value: interaction.user.tag, inline: true }
+        )
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+
+      // Log the action
+      await client.logAction(
+        'Account Creation Verified',
+        `<@${interaction.user.id}> verified account creation for <@${userId}>`
+      );
+
+    } else if (action === 'reject_account') {
+      const embed = new EmbedBuilder()
+        .setTitle('❌ Account Creation Rejected')
+        .setDescription(`Account creation verification for user <@${userId}> has been rejected.`)
+        .setColor(0xff0000)
+        .addFields(
+          { name: 'Rejected By', value: interaction.user.tag, inline: true }
+        )
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+
+      // Log the action
+      await client.logAction(
+        'Account Creation Rejected',
+        `<@${interaction.user.id}> rejected account creation for <@${userId}>`
+      );
+    }
+
+  } catch (error) {
+    console.error('Error in handleAccountCreationVerification:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while processing the verification.',
+      ephemeral: true
+    });
+  }
+}
+
+async function handleWarmupVerification(interaction, client, action, userId) {
+  try {
+    // Check if user has admin or moderator permissions
+    const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
+    const hasModeratorRole = interaction.member.roles.cache.has(client.config.roles.moderator);
+    
+    if (!hasAdminRole && !hasModeratorRole) {
+      return interaction.reply({
+        content: '❌ You need admin or moderator permissions to approve/reject verifications.',
+        ephemeral: true
+      });
+    }
+
+    const user = await User.findOne({ discord_id: userId });
+    if (!user) {
+      return interaction.reply({
+        content: '❌ User not found in database.',
+        ephemeral: true
+      });
+    }
+
+    if (action === 'verify') {
+      // Update user role to clipper
+      user.role = 'Clipper';
+      user.warmup_done = true;
+      user.warmup_approved_at = new Date();
+      await user.save();
+
+      // Update Discord roles
+      const member = await interaction.guild.members.fetch(userId);
+      const clipperRole = interaction.guild.roles.cache.get(client.config.roles.clipper);
+      const warmingUpRole = interaction.guild.roles.cache.get(client.config.roles.warmingUp);
+      
+      if (warmingUpRole && member.roles.cache.has(warmingUpRole.id)) {
+        await member.roles.remove(warmingUpRole);
+      }
+      
+      if (clipperRole) {
+        await member.roles.add(clipperRole);
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ Warm-up Verified')
+        .setDescription(`User <@${userId}> has completed warm-up and been promoted to **Clipper** role.`)
+        .setColor(0x00ff00)
+        .addFields(
+          { name: 'New Role', value: 'Clipper', inline: true },
+          { name: 'Verified By', value: interaction.user.tag, inline: true }
+        )
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+
+      // Log the action
+      await client.logAction(
+        'Warm-up Verified',
+        `<@${interaction.user.id}> verified warm-up completion for <@${userId}>`
+      );
+
+    } else if (action === 'reject') {
+      const embed = new EmbedBuilder()
+        .setTitle('❌ Warm-up Rejected')
+        .setDescription(`Warm-up verification for user <@${userId}> has been rejected.`)
+        .setColor(0xff0000)
+        .addFields(
+          { name: 'Rejected By', value: interaction.user.tag, inline: true }
+        )
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+
+      // Log the action
+      await client.logAction(
+        'Warm-up Rejected',
+        `<@${interaction.user.id}> rejected warm-up verification for <@${userId}>`
+      );
+    }
+
+  } catch (error) {
+    console.error('Error in handleWarmupVerification:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while processing the verification.',
       ephemeral: true
     });
   }

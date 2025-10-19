@@ -1,4 +1,4 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, PermissionFlagsBits } = require('discord.js');
 const User = require('../models/User');
 
 class OnboardingHandlers {
@@ -21,7 +21,6 @@ class OnboardingHandlers {
           await member.roles.remove(newMemberRole);
         } catch (roleError) {
           console.log(`Could not remove new member role: ${roleError.message}`);
-          // Continue without failing the entire process
         }
       }
 
@@ -70,87 +69,32 @@ class OnboardingHandlers {
         });
       }
 
-      // Assign "Account Created" role
-      const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
-      if (accountCreatedRole) {
-        try {
-          await member.roles.add(accountCreatedRole);
-        } catch (roleError) {
-          console.log(`Could not add account created role: ${roleError.message}`);
-        }
-      }
-
-      // Send confirmation message
-      const confirmEmbed = new EmbedBuilder()
-        .setTitle('✅ Account Verification Started!')
-        .setDescription('Perfect! You\'re ready to submit your TikTok account for verification.')
-        .addFields(
-          { name: '📋 Next Step', value: 'Head to #create-your-account for detailed setup instructions', inline: false },
-          { name: '🎯 What You\'ll Need', value: 'A new TikTok account with the recommended username format', inline: false }
-        )
-        .setColor(0x0099ff)
-        .setFooter({ text: 'Follow the guide carefully for best results!' })
-        .setTimestamp();
-
-      await interaction.reply({
-        embeds: [confirmEmbed],
-        ephemeral: true
-      });
-
-      // Log the action
-      await client.logAction(
-        'Account Verification Started',
-        `<@${interaction.user.id}> started account verification process`
-      );
-
-    } catch (error) {
-      console.error('Error in handleSubmitAccountVerification:', error);
-      await interaction.reply({
-        content: '❌ An error occurred while starting account verification.',
-        ephemeral: true
-      });
-    }
-  }
-
-  async handleSubmitTikTokVerification(interaction, client) {
-    try {
-      // Check if user has account created role
-      const member = interaction.member;
-      const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
-      
-      if (!accountCreatedRole || !member.roles.cache.has(accountCreatedRole.id)) {
-        return interaction.reply({
-          content: '❌ Please complete the previous steps first. Start with the about message.',
-          ephemeral: true
-        });
-      }
-
-      // Create modal for TikTok verification
+      // Create modal for account verification
       const modal = new ModalBuilder()
-        .setCustomId('tiktok_verification_modal')
-        .setTitle('TikTok Account Verification');
+        .setCustomId('account_verification_modal')
+        .setTitle('Account Verification');
 
       const tiktokUsernameInput = new TextInputBuilder()
         .setCustomId('tiktok_username')
-        .setLabel('TikTok Username (without @)')
+        .setLabel('TikTok Username')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('amanda.goviral')
+        .setPlaceholder('Enter your TikTok username (without @)')
         .setRequired(true)
-        .setMaxLength(24);
+        .setMaxLength(30);
 
       const profileLinkInput = new TextInputBuilder()
         .setCustomId('profile_link')
         .setLabel('TikTok Profile Link')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('https://www.tiktok.com/@amanda.goviral')
+        .setPlaceholder('https://www.tiktok.com/@username')
         .setRequired(true)
         .setMaxLength(100);
 
       const countryInput = new TextInputBuilder()
         .setCustomId('country')
-        .setLabel('Country You\'ll Be Posting From')
+        .setLabel('Country')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('United States')
+        .setPlaceholder('e.g., United States, Canada, UK')
         .setRequired(true)
         .setMaxLength(50);
 
@@ -172,39 +116,42 @@ class OnboardingHandlers {
       await interaction.showModal(modal);
 
     } catch (error) {
-      console.error('Error in handleSubmitTikTokVerification:', error);
+      console.error('Error in handleSubmitAccountVerification:', error);
       await interaction.reply({
-        content: '❌ An error occurred while opening the verification form.',
+        content: '❌ An error occurred while setting up account verification.',
         ephemeral: true
       });
     }
   }
 
-  async handleSubmitWarmupVerification(interaction, client) {
+  async handleSubmitTikTokVerification(interaction, client) {
     try {
-      // Check if user has warming up role
-      const member = interaction.member;
-      const warmingUpRole = interaction.guild.roles.cache.get(client.config.roles.warmingUp);
+      // Check if user has Account Created role
+      const accountCreatedRole = interaction.guild.roles.cache.get(client.config.roles.accountCreated);
+      const hasAccountCreatedRole = accountCreatedRole && interaction.member.roles.cache.has(accountCreatedRole.id);
       
-      if (!warmingUpRole || !member.roles.cache.has(warmingUpRole.id)) {
-        return interaction.reply({
-          content: '❌ You must complete the account verification first.',
-          ephemeral: true
-        });
+      if (!hasAccountCreatedRole) {
+        const embed = new EmbedBuilder()
+          .setTitle('❌ Access Denied')
+          .setDescription('You must complete account creation first.')
+          .setColor(0xff0000)
+          .setTimestamp();
+        
+        return interaction.reply({ embeds: [embed], ephemeral: true });
       }
 
-      // Create modal for warm-up verification
+      // Create modal for TikTok verification
       const modal = new ModalBuilder()
-        .setCustomId('warmup_verification_modal')
-        .setTitle('Warm-Up Verification');
+        .setCustomId('tiktok_verification_modal')
+        .setTitle('TikTok Account Verification');
 
-      const completedWarmupInput = new TextInputBuilder()
-        .setCustomId('completed_warmup')
-        .setLabel('Confirm 3-Day Warm-Up Completion')
-        .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder('I have completed the 3-day warm-up process as instructed...')
+      const usernameInput = new TextInputBuilder()
+        .setCustomId('tiktok_username')
+        .setLabel('TikTok Username')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Enter your TikTok username')
         .setRequired(true)
-        .setMaxLength(500);
+        .setMaxLength(30);
 
       const profileLinkInput = new TextInputBuilder()
         .setCustomId('profile_link')
@@ -214,15 +161,86 @@ class OnboardingHandlers {
         .setRequired(true)
         .setMaxLength(100);
 
+      const countryInput = new TextInputBuilder()
+        .setCustomId('country')
+        .setLabel('Country')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('e.g., United States')
+        .setRequired(true)
+        .setMaxLength(50);
+
+      const paymentMethodInput = new TextInputBuilder()
+        .setCustomId('payment_method')
+        .setLabel('Payment Method')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('PayPal or Wise')
+        .setRequired(true)
+        .setMaxLength(20);
+
+      const firstActionRow = new ActionRowBuilder().addComponents(usernameInput);
+      const secondActionRow = new ActionRowBuilder().addComponents(profileLinkInput);
+      const thirdActionRow = new ActionRowBuilder().addComponents(countryInput);
+      const fourthActionRow = new ActionRowBuilder().addComponents(paymentMethodInput);
+
+      modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow);
+
+      await interaction.showModal(modal);
+
+    } catch (error) {
+      console.error('Error in handleSubmitTikTokVerification:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while setting up TikTok verification.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleSubmitWarmupVerification(interaction, client) {
+    try {
+      // Check if user has Warming Up role
+      const warmingUpRole = interaction.guild.roles.cache.get(client.config.roles.warmingUp);
+      const hasWarmingUpRole = warmingUpRole && interaction.member.roles.cache.has(warmingUpRole.id);
+      
+      if (!hasWarmingUpRole) {
+        const embed = new EmbedBuilder()
+          .setTitle('❌ Access Denied')
+          .setDescription('You must complete TikTok verification first.')
+          .setColor(0xff0000)
+          .setTimestamp();
+        
+        return interaction.reply({ embeds: [embed], ephemeral: true });
+      }
+
+      // Create modal for warm-up verification
+      const modal = new ModalBuilder()
+        .setCustomId('warmup_verification_modal')
+        .setTitle('Warm-up Verification');
+
+      const warmupCompletedInput = new TextInputBuilder()
+        .setCustomId('warmup_completed')
+        .setLabel('Warm-up Completion Confirmation')
+        .setStyle(TextInputStyle.Paragraph)
+        .setPlaceholder('Confirm you have completed the 3-day warm-up process...')
+        .setRequired(true)
+        .setMaxLength(500);
+
+      const profileLinkInput = new TextInputBuilder()
+        .setCustomId('profile_link')
+        .setLabel('Updated TikTok Profile Link')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('https://www.tiktok.com/@username')
+        .setRequired(true)
+        .setMaxLength(100);
+
       const fypScreenshotInput = new TextInputBuilder()
         .setCustomId('fyp_screenshot')
         .setLabel('FYP Screenshot Description')
         .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder('Describe your FYP content - should show Go Viral niche content')
+        .setPlaceholder('Describe what you see on your FYP (Go Viral content, etc.)')
         .setRequired(true)
-        .setMaxLength(300);
+        .setMaxLength(500);
 
-      const firstActionRow = new ActionRowBuilder().addComponents(completedWarmupInput);
+      const firstActionRow = new ActionRowBuilder().addComponents(warmupCompletedInput);
       const secondActionRow = new ActionRowBuilder().addComponents(profileLinkInput);
       const thirdActionRow = new ActionRowBuilder().addComponents(fypScreenshotInput);
 
@@ -233,7 +251,7 @@ class OnboardingHandlers {
     } catch (error) {
       console.error('Error in handleSubmitWarmupVerification:', error);
       await interaction.reply({
-        content: '❌ An error occurred while opening the warm-up verification form.',
+        content: '❌ An error occurred while setting up warm-up verification.',
         ephemeral: true
       });
     }
