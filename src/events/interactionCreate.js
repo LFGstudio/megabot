@@ -69,6 +69,8 @@ async function handleButtonInteraction(interaction, client) {
   try {
     const customId = interaction.customId;
     console.log(`🔍 Button clicked: ${customId}`);
+    console.log(`🔍 Button customId starts with 'verify_account_creation_': ${customId.startsWith('verify_account_creation_')}`);
+    console.log(`🔍 Button customId starts with 'reject_account_creation_': ${customId.startsWith('reject_account_creation_')}`);
     
     // Handle ticket system buttons
     if (customId.startsWith('ticket_')) {
