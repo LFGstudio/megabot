@@ -187,7 +187,16 @@ async function handleButtonInteraction(interaction, client) {
       const action = customId.split('_')[1]; // 'verify' or 'reject'
       
       console.log(`🔍 Warmup verification - userId: ${userId}, action: ${action}`);
-      await handleWarmupVerification(interaction, client, action, userId);
+      try {
+        await handleWarmupVerification(interaction, client, action, userId);
+      } catch (error) {
+        console.error('❌ Error in warmup verification button handler:', error);
+        console.error('❌ Error stack:', error.stack);
+        await interaction.reply({
+          content: `❌ Error processing warmup verification: ${error.message}`,
+          ephemeral: true
+        });
+      }
       return;
     }
 
