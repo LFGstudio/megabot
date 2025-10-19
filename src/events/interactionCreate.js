@@ -214,6 +214,8 @@ async function handleModalSubmit(interaction, client) {
       await handleWarmupVerificationModal(interaction, client);
     } else if (customId === 'add_tiktok_account_modal') {
       await handleAddTikTokAccountModal(interaction, client);
+    } else if (customId === 'test_modal') {
+      await handleTestModal(interaction, client);
     }
 
   } catch (error) {
@@ -914,7 +916,6 @@ async function handleButtonInteraction(interaction, client) {
       ephemeral: true
     });
   }
-}
 
   async function handleAddTikTokAccountModal(interaction, client) {
     try {
@@ -1038,9 +1039,26 @@ async function handleButtonInteraction(interaction, client) {
       ephemeral: true
     });
   }
-}
 
-async function handleAccountVerification(interaction, client, action, userId, username) {
+  async function handleTestModal(interaction, client) {
+    try {
+      const testUsername = interaction.fields.getTextInputValue('test_username');
+      console.log(`🧪 Test modal submitted with username: ${testUsername}`);
+      
+      await interaction.reply({
+        content: `✅ Test modal worked! Username: ${testUsername}`,
+        ephemeral: true
+      });
+    } catch (error) {
+      console.error('Error in handleTestModal:', error);
+      await interaction.reply({
+        content: '❌ Test modal failed.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async function handleAccountVerification(interaction, client, action, userId, username) {
   try {
     // Check if user has admin or moderator permissions
     const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
