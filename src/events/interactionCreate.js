@@ -29,7 +29,7 @@ module.exports = {
       }
     }
   }
-}
+};
 
 async function handleModalSubmit(interaction, client) {
   const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
@@ -1059,7 +1059,7 @@ async function handleButtonInteraction(interaction, client) {
   }
 
   async function handleAccountVerification(interaction, client, action, userId, username) {
-  try {
+    try {
     // Check if user has admin or moderator permissions
     const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
     const isModerator = client.config.roles.moderator && interaction.member.roles.cache.has(client.config.roles.moderator);
