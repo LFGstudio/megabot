@@ -17,6 +17,21 @@ module.exports = {
             .setDescription('Welcome image to display')
             .setRequired(false)
         )
+        .addStringOption(option =>
+          option.setName('title')
+            .setDescription('Custom title for welcome message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('description')
+            .setDescription('Custom description for welcome message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('button-text')
+            .setDescription('Custom button text')
+            .setRequired(false)
+        )
     )
     .addSubcommand(subcommand =>
       subcommand
@@ -25,6 +40,21 @@ module.exports = {
         .addAttachmentOption(option =>
           option.setName('image')
             .setDescription('About image to display')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('title')
+            .setDescription('Custom title for about message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('description')
+            .setDescription('Custom description for about message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('button-text')
+            .setDescription('Custom button text')
             .setRequired(false)
         )
     )
@@ -37,6 +67,21 @@ module.exports = {
             .setDescription('Create account image to display')
             .setRequired(false)
         )
+        .addStringOption(option =>
+          option.setName('title')
+            .setDescription('Custom title for create account message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('description')
+            .setDescription('Custom description for create account message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('button-text')
+            .setDescription('Custom button text')
+            .setRequired(false)
+        )
     )
     .addSubcommand(subcommand =>
       subcommand
@@ -45,6 +90,21 @@ module.exports = {
         .addAttachmentOption(option =>
           option.setName('image')
             .setDescription('Warmup guide image to display')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('title')
+            .setDescription('Custom title for warmup guide message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('description')
+            .setDescription('Custom description for warmup guide message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('button-text')
+            .setDescription('Custom button text')
             .setRequired(false)
         )
     )
@@ -75,10 +135,13 @@ module.exports = {
 
   async createWelcomeMessage(interaction, client) {
     const imageAttachment = interaction.options.getAttachment('image');
+    const customTitle = interaction.options.getString('title');
+    const customDescription = interaction.options.getString('description');
+    const customButtonText = interaction.options.getString('button-text');
     
     const welcomeEmbed = new EmbedBuilder()
-      .setTitle('👋 Welcome to MegaViral!')
-      .setDescription('We pay creators to post viral TikTok clips using our content library.\n\nTo get started, follow our quick 3-step onboarding process to get verified and start earning 💸')
+      .setTitle(customTitle || '👋 Welcome to MegaViral!')
+      .setDescription(customDescription || 'We pay creators to post viral TikTok clips using our content library.\n\nTo get started, follow our quick 3-step onboarding process to get verified and start earning 💸')
       .addFields(
         {
           name: '🚀 What You\'ll Get',
@@ -104,7 +167,7 @@ module.exports = {
       .addComponents(
         new ButtonBuilder()
           .setCustomId('start_onboarding')
-          .setLabel('Start Onboarding')
+          .setLabel(customButtonText || 'Start Onboarding')
           .setEmoji('✅')
           .setStyle(ButtonStyle.Success)
       );
@@ -117,10 +180,13 @@ module.exports = {
 
   async createAboutMessage(interaction, client) {
     const imageAttachment = interaction.options.getAttachment('image');
+    const customTitle = interaction.options.getString('title');
+    const customDescription = interaction.options.getString('description');
+    const customButtonText = interaction.options.getString('button-text');
     
     const aboutEmbed = new EmbedBuilder()
-      .setTitle('💰 How MegaViral Works')
-      .setDescription('Post TikTok videos from our content library and earn payouts based on your views!')
+      .setTitle(customTitle || '💰 How MegaViral Works')
+      .setDescription(customDescription || 'Post TikTok videos from our content library and earn payouts based on your views!')
       .addFields(
         {
           name: '💸 How You Earn',
@@ -151,7 +217,7 @@ module.exports = {
       .addComponents(
         new ButtonBuilder()
           .setCustomId('submit_account_verification')
-          .setLabel('Submit Account for Verification')
+          .setLabel(customButtonText || 'Submit Account for Verification')
           .setEmoji('🎫')
           .setStyle(ButtonStyle.Primary)
       );
@@ -164,10 +230,13 @@ module.exports = {
 
   async createAccountMessage(interaction, client) {
     const imageAttachment = interaction.options.getAttachment('image');
+    const customTitle = interaction.options.getString('title');
+    const customDescription = interaction.options.getString('description');
+    const customButtonText = interaction.options.getString('button-text');
     
     const accountEmbed = new EmbedBuilder()
-      .setTitle('🎯 Create Your New TikTok Account')
-      .setDescription('To qualify for payouts, you must post using a new, dedicated TikTok account. This helps the algorithm push your videos faster and ensures we can track performance correctly.')
+      .setTitle(customTitle || '🎯 Create Your New TikTok Account')
+      .setDescription(customDescription || 'To qualify for payouts, you must post using a new, dedicated TikTok account. This helps the algorithm push your videos faster and ensures we can track performance correctly.')
       .addFields(
         {
           name: '📱 Here\'s How to Create Your Account:',
@@ -198,7 +267,7 @@ module.exports = {
       .addComponents(
         new ButtonBuilder()
           .setCustomId('submit_tiktok_verification')
-          .setLabel('Submit TikTok for Verification')
+          .setLabel(customButtonText || 'Submit TikTok for Verification')
           .setEmoji('📤')
           .setStyle(ButtonStyle.Success)
       );
@@ -211,10 +280,13 @@ module.exports = {
 
   async createWarmupMessage(interaction, client) {
     const imageAttachment = interaction.options.getAttachment('image');
+    const customTitle = interaction.options.getString('title');
+    const customDescription = interaction.options.getString('description');
+    const customButtonText = interaction.options.getString('button-text');
     
     const warmupEmbed = new EmbedBuilder()
-      .setTitle('🔥 Warm Up the Algorithm — 3-Day Process')
-      .setDescription('Follow this exactly. It\'s what makes your videos go viral 🚀')
+      .setTitle(customTitle || '🔥 Warm Up the Algorithm — 3-Day Process')
+      .setDescription(customDescription || 'Follow this exactly. It\'s what makes your videos go viral 🚀')
       .addFields(
         {
           name: '📅 Day 1:',
@@ -245,7 +317,7 @@ module.exports = {
       .addComponents(
         new ButtonBuilder()
           .setCustomId('submit_warmup_verification')
-          .setLabel('Submit Warm-Up Verification')
+          .setLabel(customButtonText || 'Submit Warm-Up Verification')
           .setEmoji('🎫')
           .setStyle(ButtonStyle.Danger)
       );
