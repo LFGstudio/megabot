@@ -108,32 +108,41 @@ class OnboardingHandlers {
     try {
       // Send Day 2 instructions
       const day2Embed = new EmbedBuilder()
-        .setTitle('🎫 Day 2: Verification')
-        .setDescription('Great job! Now let\'s get your account verified so you can start earning.')
+        .setTitle('🔥 Day 2: Algorithm Warm-up')
+        .setDescription('Great job! Now let\'s warm up the algorithm to make your videos go viral.')
         .addFields(
           {
-            name: '📋 What Happens Next',
-            value: '• Your account will be reviewed by our team\n• We\'ll check your profile setup\n• Verification typically takes 24-48 hours',
+            name: '📅 Day 2 Instructions',
+            value: '• Scroll naturally on your FYP — no searching\n• Engage like a real person (like, comment, follow)\n• If "Go Viral" niche appears, engage with it',
             inline: false
           },
           {
-            name: '✅ Verification Checklist',
-            value: '• Account follows username format\n• Profile is professional and complete\n• Bio includes MegaViral branding\n• Account is in Tier 1 country or using VPN',
+            name: '🎯 Goal',
+            value: 'Build engagement history and train the algorithm to show you relevant content.',
             inline: false
           },
           {
             name: '⏰ Next Steps',
-            value: 'Once verified, you\'ll receive instructions for Day 3: Algorithm Warm-up',
+            value: 'Complete today\'s warm-up, then proceed to Day 3 tomorrow.',
             inline: false
           }
         )
-        .setColor(0x0099ff)
-        .setFooter({ text: 'Your account is now under review!' })
+        .setColor(0xff6b6b)
+        .setFooter({ text: 'Complete today\'s warm-up, then continue tomorrow!' })
         .setTimestamp();
+
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId('complete_day_2')
+            .setLabel('I\'ve Completed Day 2')
+            .setEmoji('✅')
+            .setStyle(ButtonStyle.Success)
+        );
 
       await interaction.reply({
         embeds: [day2Embed],
-        ephemeral: true
+        components: [row]
       });
 
       // Log the action
@@ -146,6 +155,199 @@ class OnboardingHandlers {
       console.error('Error in handleCompleteDay1:', error);
       await interaction.reply({
         content: '❌ An error occurred while completing Day 1.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleCompleteDay2(interaction, client) {
+    try {
+      // Send Day 3 instructions
+      const day3Embed = new EmbedBuilder()
+        .setTitle('🎯 Day 3: Final Branding & Verification')
+        .setDescription('Almost there! Let\'s finalize your account branding and get verified.')
+        .addFields(
+          {
+            name: '📅 Day 3 Instructions',
+            value: '• Search "how to go viral" and interact with those videos\n• Keep scrolling and engaging with similar content\n• Finalize your account branding',
+            inline: false
+          },
+          {
+            name: '🏷️ Final Branding Check',
+            value: '• Username, display name, and profile photo should be set\n• Bio: "Helping small creators grow 💖\nApp you\'re looking for is \'MegaViral: AI Creator Agent\'"\n• Your FYP should show "Go Viral" or creator-growth content',
+            inline: false
+          },
+          {
+            name: '🎉 Ready for Verification',
+            value: 'Once you complete Day 3, you\'ll submit your account for final verification!',
+            inline: false
+          }
+        )
+        .setColor(0xff4444)
+        .setFooter({ text: 'Complete Day 3, then submit for verification!' })
+        .setTimestamp();
+
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId('complete_day_3')
+            .setLabel('I\'ve Completed Day 3 - Submit for Verification')
+            .setEmoji('🎫')
+            .setStyle(ButtonStyle.Primary)
+        );
+
+      await interaction.reply({
+        embeds: [day3Embed],
+        components: [row]
+      });
+
+      // Log the action
+      await client.logAction(
+        'Day 2 Completed',
+        `<@${interaction.user.id}> completed Day 2 of onboarding`
+      );
+
+    } catch (error) {
+      console.error('Error in handleCompleteDay2:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while completing Day 2.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleCompleteDay3(interaction, client) {
+    try {
+      // Create verification modal
+      const modal = new ModalBuilder()
+        .setCustomId('final_verification_modal')
+        .setTitle('Submit Account for Final Verification');
+
+      // Add input fields
+      const tiktokUsername = new TextInputBuilder()
+        .setCustomId('tiktok_username')
+        .setLabel('Your TikTok Username')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('@yourusername')
+        .setRequired(true);
+
+      const accountUrl = new TextInputBuilder()
+        .setCustomId('account_url')
+        .setLabel('Your TikTok Account URL')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('https://www.tiktok.com/@yourusername')
+        .setRequired(true);
+
+      const warmupConfirmation = new TextInputBuilder()
+        .setCustomId('warmup_confirmation')
+        .setLabel('Confirm you completed the 3-day warm-up process')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Type "YES" to confirm')
+        .setRequired(true);
+
+      // Add inputs to modal
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(tiktokUsername),
+        new ActionRowBuilder().addComponents(accountUrl),
+        new ActionRowBuilder().addComponents(warmupConfirmation)
+      );
+
+      await interaction.showModal(modal);
+
+    } catch (error) {
+      console.error('Error creating final verification modal:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while creating the verification form.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleFinalVerificationSubmit(interaction, client) {
+    try {
+      const tiktokUsername = interaction.fields.getTextInputValue('tiktok_username');
+      const accountUrl = interaction.fields.getTextInputValue('account_url');
+      const warmupConfirmation = interaction.fields.getTextInputValue('warmup_confirmation');
+
+      // Validate warmup confirmation
+      if (warmupConfirmation.toLowerCase() !== 'yes') {
+        return await interaction.reply({
+          content: '❌ Please confirm you completed the 3-day warm-up process by typing "YES".',
+          ephemeral: true
+        });
+      }
+
+      // Find admin channel for verification
+      const adminChannel = client.channels.cache.get(client.config.channels.admin);
+      if (!adminChannel) {
+        return await interaction.reply({
+          content: '❌ Admin channel not found. Please contact an administrator.',
+          ephemeral: true
+        });
+      }
+
+      // Create verification embed
+      const verificationEmbed = new EmbedBuilder()
+        .setTitle('🎫 Final Verification Request')
+        .setColor(0xff6b6b)
+        .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Status:** Ready for Final Verification`)
+        .addFields(
+          { name: '📱 TikTok Username', value: tiktokUsername, inline: true },
+          { name: '🔗 Account URL', value: accountUrl, inline: true },
+          { name: '🔥 Warm-up Completed', value: '✅ Confirmed', inline: true },
+          { name: '📅 Submitted', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: false }
+        )
+        .setFooter({ text: 'Review account and approve for earning access' })
+        .setTimestamp();
+
+      // Create action row with verification buttons
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId(`approve_final_verification_${interaction.user.id}`)
+            .setLabel('✅ Approve & Grant Access')
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(`reject_final_verification_${interaction.user.id}`)
+            .setLabel('❌ Reject')
+            .setStyle(ButtonStyle.Danger)
+        );
+
+      // Send verification request to admin channel
+      await adminChannel.send({ 
+        content: `@here Final verification request from <@${interaction.user.id}>`,
+        embeds: [verificationEmbed], 
+        components: [row] 
+      });
+
+      // Confirm submission to user
+      const confirmEmbed = new EmbedBuilder()
+        .setTitle('✅ Verification Submitted!')
+        .setColor(0x00ff00)
+        .setDescription('Your account has been submitted for final verification.')
+        .addFields(
+          { name: '📱 Account', value: tiktokUsername, inline: true },
+          { name: '⏰ Review Time', value: '24-48 hours', inline: true },
+          { name: '🎉 What\'s Next', value: 'Once approved, you\'ll receive access to our content library and can start earning!', inline: false }
+        )
+        .setFooter({ text: 'Thank you for completing the 3-day onboarding process!' })
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [confirmEmbed],
+        ephemeral: true
+      });
+
+      // Log the action
+      await client.logAction(
+        'Final Verification Submitted',
+        `<@${interaction.user.id}> submitted final verification for ${tiktokUsername}`
+      );
+
+    } catch (error) {
+      console.error('Error in handleFinalVerificationSubmit:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while submitting your verification.',
         ephemeral: true
       });
     }

@@ -51,6 +51,9 @@ async function handleModalSubmit(interaction, client) {
     } else if (customId === 'onboarding_ticket_modal') {
       const onboardingSupportHandlers = require('../utils/onboardingSupportHandlers');
       await onboardingSupportHandlers.handleTicketSubmit(interaction, client);
+    } else if (customId === 'final_verification_modal') {
+      const OnboardingHandlers = require('../utils/onboardingHandlers');
+      await OnboardingHandlers.handleFinalVerificationSubmit(interaction, client);
     } else if (customId === 'test_modal') {
       await handleTestModal(interaction, client);
     }
@@ -116,6 +119,12 @@ async function handleButtonInteraction(interaction, client) {
       return;
     } else if (customId === 'complete_day_1') {
       await OnboardingHandlers.handleCompleteDay1(interaction, client);
+      return;
+    } else if (customId === 'complete_day_2') {
+      await OnboardingHandlers.handleCompleteDay2(interaction, client);
+      return;
+    } else if (customId === 'complete_day_3') {
+      await OnboardingHandlers.handleCompleteDay3(interaction, client);
       return;
     }
 
