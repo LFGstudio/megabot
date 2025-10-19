@@ -126,6 +126,12 @@ async function handleButtonInteraction(interaction, client) {
     } else if (customId === 'complete_day_3') {
       await OnboardingHandlers.handleCompleteDay3(interaction, client);
       return;
+    } else if (customId.startsWith('approve_final_verification_')) {
+      await OnboardingHandlers.handleApproveFinalVerification(interaction, client);
+      return;
+    } else if (customId.startsWith('reject_final_verification_')) {
+      await OnboardingHandlers.handleRejectFinalVerification(interaction, client);
+      return;
     }
 
     // Handle onboarding support buttons

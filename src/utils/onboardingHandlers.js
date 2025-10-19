@@ -651,6 +651,142 @@ class OnboardingHandlers {
       });
     }
   }
+
+  async handleApproveFinalVerification(interaction, client) {
+    try {
+      // Extract user ID from button customId
+      const userId = interaction.customId.replace('approve_final_verification_', '');
+      const user = await client.users.fetch(userId);
+      
+      if (!user) {
+        return await interaction.reply({
+          content: '❌ User not found.',
+          ephemeral: true
+        });
+      }
+
+      // Assign clipper role to approved user
+      const member = await interaction.guild.members.fetch(userId);
+      const clipperRole = interaction.guild.roles.cache.get(client.config.roles.clipper);
+      
+      if (clipperRole && member) {
+        await member.roles.add(clipperRole);
+      }
+
+      // Create approval embed
+      const approvalEmbed = new EmbedBuilder()
+        .setTitle('✅ Verification Approved!')
+        .setColor(0x00ff00)
+        .setDescription(`**User:** ${user.tag} (<@${userId}>)\n**Status:** Approved by ${interaction.user.tag}`)
+        .addFields(
+          { name: '🎉 Access Granted', value: 'User can now access content library and start earning!', inline: false },
+          { name: '📅 Approved', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: false }
+        )
+        .setFooter({ text: 'Verification completed successfully!' })
+        .setTimestamp();
+
+      // Update the original message with approval status
+      await interaction.update({
+        embeds: [approvalEmbed],
+        components: [] // Remove buttons
+      });
+
+      // Send DM to approved user
+      try {
+        const userApprovalEmbed = new EmbedBuilder()
+          .setTitle('🎉 Your Account Has Been Approved!')
+          .setColor(0x00ff00)
+          .setDescription('Congratulations! Your TikTok account has been verified and approved.')
+          .addFields(
+            { name: '✅ Status', value: 'Account Verified', inline: true },
+            { name: '🎯 Next Steps', value: 'You can now access our content library and start posting to earn!', inline: false }
+          )
+          .setFooter({ text: 'Welcome to the team!' })
+          .setTimestamp();
+
+        await user.send({ embeds: [userApprovalEmbed] });
+      } catch (dmError) {
+        console.log(`Could not send DM to ${user.tag}:`, dmError.message);
+      }
+
+      // Log the action
+      await client.logAction(
+        'Final Verification Approved',
+        `${interaction.user.tag} approved final verification for ${user.tag} (${userId})`
+      );
+
+    } catch (error) {
+      console.error('Error in handleApproveFinalVerification:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while approving the verification.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleRejectFinalVerification(interaction, client) {
+    try {
+      // Extract user ID from button customId
+      const userId = interaction.customId.replace('reject_final_verification_', '');
+      const user = await client.users.fetch(userId);
+      
+      if (!user) {
+        return await interaction.reply({
+          content: '❌ User not found.',
+          ephemeral: true
+        });
+      }
+
+      // Create rejection embed
+      const rejectionEmbed = new EmbedBuilder()
+        .setTitle('❌ Verification Rejected')
+        .setColor(0xff0000)
+        .setDescription(`**User:** ${user.tag} (<@${userId}>)\n**Status:** Rejected by ${interaction.user.tag}`)
+        .addFields(
+          { name: '📋 Reason', value: 'Please contact support for more information.', inline: false },
+          { name: '📅 Rejected', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: false }
+        )
+        .setFooter({ text: 'User can reapply after addressing issues' })
+        .setTimestamp();
+
+      // Update the original message with rejection status
+      await interaction.update({
+        embeds: [rejectionEmbed],
+        components: [] // Remove buttons
+      });
+
+      // Send DM to rejected user
+      try {
+        const userRejectionEmbed = new EmbedBuilder()
+          .setTitle('❌ Verification Needs Review')
+          .setColor(0xff0000)
+          .setDescription('Your TikTok account verification requires additional review.')
+          .addFields(
+            { name: '📋 Status', value: 'Verification Rejected', inline: true },
+            { name: '🔍 Next Steps', value: 'Please contact our support team for more information about what needs to be addressed.', inline: false }
+          )
+          .setFooter({ text: 'You can reapply after addressing any issues' })
+          .setTimestamp();
+
+        await user.send({ embeds: [userRejectionEmbed] });
+      } catch (dmError) {
+        console.log(`Could not send DM to ${user.tag}:`, dmError.message);
+      }
+
+      // Log the action
+      await client.logAction(
+        'Final Verification Rejected',
+        `${interaction.user.tag} rejected final verification for ${user.tag} (${userId})`
+      );
+
+    } catch (error) {
+      console.error('Error in handleRejectFinalVerification:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while rejecting the verification.',
+        ephemeral: true
+      });
+    }
+  }
 }
 
 module.exports = new OnboardingHandlers();
