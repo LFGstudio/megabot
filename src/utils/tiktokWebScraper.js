@@ -57,7 +57,7 @@ class TikTokWebScraper {
       });
       
       // Wait for videos to load
-      await page.waitForTimeout(3000);
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Scroll to load more videos
       await this.scrollToLoadVideos(page);
@@ -132,7 +132,7 @@ class TikTokWebScraper {
         await page.evaluate('window.scrollTo(0, document.body.scrollHeight)');
         
         // Wait for new content to load
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Check if new content loaded
         currentHeight = await page.evaluate('document.body.scrollHeight');
@@ -178,7 +178,7 @@ class TikTokWebScraper {
       });
       
       // Wait for video to load
-      await page.waitForTimeout(3000);
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Extract detailed video data
       const videoData = await page.evaluate(() => {
