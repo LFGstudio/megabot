@@ -95,9 +95,30 @@ class TikTokScraper {
     }
   }
 
-  // Process individual video
+  // Process individual video with enhanced metrics
   async processVideo(user, videoData) {
     try {
+      console.log(`🎯 Processing video ${videoData.id} for user ${user.discord_id}`);
+      
+      // Get detailed video metrics if not already available
+      let detailedData = videoData;
+      if (!videoData.likes && !videoData.comments && videoData.url) {
+        console.log(`🔍 Getting detailed metrics for video ${videoData.id}`);
+        detailedData = await TikTokWebScraper.scrapeIndividualVideo(videoData.url);
+        
+        if (detailedData) {
+          // Merge the detailed data with existing data
+          videoData = {
+            ...videoData,
+            views: detailedData.views || videoData.views,
+            likes: detailedData.likes,
+            comments: detailedData.comments,
+            shares: detailedData.shares,
+            caption: detailedData.caption || videoData.caption
+          };
+        }
+      }
+      
       // Check if video already exists
       let post = await TikTokPost.findOne({ 
         tiktok_id: videoData.id,
@@ -116,8 +137,17 @@ class TikTokScraper {
         });
       }
 
-      // Update views
+      // Update views and engagement metrics
       await post.updateViews(videoData.views, videoData.tier1_views);
+      
+      // Update engagement metrics if available
+      if (videoData.likes || videoData.comments || videoData.shares) {
+        post.likes = videoData.likes || 0;
+        post.comments = videoData.comments || 0;
+        post.shares = videoData.shares || 0;
+        post.last_updated = new Date();
+        await post.save();
+      }
 
       // Check if video just monetized
       if (videoData.views >= 1000 && !post.monetized) {
@@ -125,7 +155,7 @@ class TikTokScraper {
         await this.notifyMonetization(user, post);
       }
 
-      console.log(`📊 Updated video ${videoData.id}: ${videoData.views} views`);
+      console.log(`📊 Updated video ${videoData.id}: ${videoData.views} views, ${videoData.likes || 0} likes, ${videoData.comments || 0} comments`);
     } catch (error) {
       console.error(`❌ Error processing video ${videoData.id}:`, error);
     }
@@ -159,6 +189,54 @@ class TikTokScraper {
     }, this.scrapingInterval);
     
     console.log('✅ TikTok scraping cron job started');
+  }
+
+  // Enhanced method to scrape all videos with detailed metrics
+  async scrapeAccountWithDetailedMetrics(username) {
+    try {
+      console.log(`🔍 Starting detailed scraping for @${username}`);
+      
+      // First, get all videos from the account
+      const accountUrl = `https://www.tiktok.com/@${username}`;
+      const videos = await this.getAccountVideos(accountUrl);
+      
+      if (!videos || videos.length === 0) {
+        console.log(`⚠️ No videos found for @${username}`);
+        return [];
+      }
+      
+      console.log(`📱 Found ${videos.length} videos, getting detailed metrics...`);
+      
+      // Extract video URLs for detailed scraping
+      const videoUrls = videos.map(video => video.url).filter(url => url);
+      
+      // Batch scrape detailed metrics
+      const detailedVideos = await TikTokWebScraper.scrapeMultipleVideos(videoUrls);
+      
+      // Merge the detailed data with the original video data
+      const enhancedVideos = videos.map(video => {
+        const detailedVideo = detailedVideos.find(dv => dv.url === video.url);
+        if (detailedVideo) {
+          return {
+            ...video,
+            views: detailedVideo.views || video.views,
+            likes: detailedVideo.likes || 0,
+            comments: detailedVideo.comments || 0,
+            shares: detailedVideo.shares || 0,
+            caption: detailedVideo.caption || video.caption,
+            author: detailedVideo.author || username
+          };
+        }
+        return video;
+      });
+      
+      console.log(`✅ Enhanced scraping completed for @${username}: ${enhancedVideos.length} videos with detailed metrics`);
+      return enhancedVideos;
+      
+    } catch (error) {
+      console.error(`❌ Error in detailed scraping for @${username}:`, error);
+      return [];
+    }
   }
 
   // Close scraper resources
