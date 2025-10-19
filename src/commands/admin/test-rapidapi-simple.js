@@ -4,6 +4,7 @@ const config = require('../../config/config');
 
 module.exports = {
   name: 'testrapidapi',
+  type: 'slash',
   data: new SlashCommandBuilder()
     .setName('testrapidapi')
     .setDescription('Test RapidAPI TikTok integration')
