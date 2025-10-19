@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require('discord.js');
 
 module.exports = {
   name: 'post-creator-program-message',
@@ -6,10 +6,17 @@ module.exports = {
   type: 'slash',
   data: new SlashCommandBuilder()
     .setName('post-creator-program-message')
-    .setDescription('Post the creator program welcome message to the creator-program channel'),
+    .setDescription('Post the creator program welcome message to the creator-program channel')
+    .addAttachmentOption(option =>
+      option.setName('image')
+        .setDescription('Optional image to include with the message')
+        .setRequired(false)),
 
   async execute(interaction, client) {
     try {
+      // Get the image attachment if provided
+      const imageAttachment = interaction.options.getAttachment('image');
+
       // Find the creator-program channel
       const creatorProgramChannel = client.channels.cache.find(
         channel => channel.name === 'creator-program' && channel.type === 0
@@ -48,12 +55,32 @@ You will be trained on how to create the faceless content and generate millions 
         .setFooter({ text: 'Ready to start your journey to viral success?' })
         .setTimestamp();
 
+      // Add image to embed if provided
+      if (imageAttachment) {
+        welcomeEmbed.setImage(imageAttachment.url);
+      }
+
+      // Prepare the message content
+      const messageContent = {
+        embeds: [welcomeEmbed]
+      };
+
+      // Add image as attachment if provided
+      if (imageAttachment) {
+        const attachment = new AttachmentBuilder(imageAttachment.url, { name: imageAttachment.name });
+        messageContent.files = [attachment];
+      }
+
       // Post the message to the creator-program channel
-      await creatorProgramChannel.send({ embeds: [welcomeEmbed] });
+      await creatorProgramChannel.send(messageContent);
 
       // Confirm to the admin
+      const confirmMessage = imageAttachment 
+        ? `✅ Creator program welcome message with image posted to #${creatorProgramChannel.name}!`
+        : `✅ Creator program welcome message posted to #${creatorProgramChannel.name}!`;
+      
       await interaction.reply({
-        content: `✅ Creator program welcome message posted to #${creatorProgramChannel.name}!`,
+        content: confirmMessage,
         ephemeral: true
       });
 
