@@ -79,59 +79,155 @@ class TikTokAPI {
     };
   }
 
-  // Enhanced RapidAPI implementation
+  // Enhanced RapidAPI implementation with correct endpoints
   async fetchWithRapidAPI(username) {
     try {
       console.log(`🔍 Fetching TikTok data via RapidAPI for @${username}`);
       
-      // Try multiple RapidAPI endpoints for comprehensive data
-      const endpoints = [
-        {
-          url: 'https://tiktok-scraper2.p.rapidapi.com/user/info',
-          params: { username: username },
-          host: 'tiktok-scraper2.p.rapidapi.com'
-        },
-        {
-          url: 'https://tiktok-scraper2.p.rapidapi.com/user/posts',
-          params: { username: username, count: 20 },
-          host: 'tiktok-scraper2.p.rapidapi.com'
-        }
-      ];
-
-      const results = [];
+      // First, get user profile to get UID and sec_uid
+      const userProfile = await this.fetchUserProfile(username);
+      if (!userProfile.success) {
+        throw new Error('Failed to fetch user profile');
+      }
       
-      for (const endpoint of endpoints) {
-        try {
-          const options = {
-            method: 'GET',
-            url: endpoint.url,
-            params: endpoint.params,
-            headers: {
-              'X-RapidAPI-Key': this.rapidApiKey,
-              'X-RapidAPI-Host': endpoint.host
-            }
-          };
-
-          const response = await axios.request(options);
-          results.push(response.data);
-          
-          // Add delay between requests to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-        } catch (error) {
-          console.log(`⚠️ RapidAPI endpoint failed: ${endpoint.url}`, error.message);
+      const { uid, sec_uid } = userProfile.data;
+      
+      // Then fetch user videos
+      const userVideos = await this.fetchUserVideos(uid, sec_uid);
+      if (!userVideos.success) {
+        throw new Error('Failed to fetch user videos');
+      }
+      
+      // Combine the data
+      return {
+        success: true,
+        data: {
+          username: username,
+          videos: userVideos.data.videos,
+          userInfo: userProfile.data,
+          totalViews: userVideos.data.videos.reduce((sum, video) => sum + video.views, 0),
+          tier1Views: userVideos.data.videos.reduce((sum, video) => sum + video.tier1_views, 0),
+          followers: userProfile.data.follower_count || 0,
+          videos: userVideos.data.videos.length,
+          lastUpdated: new Date(),
+          source: 'rapidapi'
         }
-      }
-
-      if (results.length > 0) {
-        return this.parseRapidAPIResponse(results, username);
-      } else {
-        throw new Error('All RapidAPI endpoints failed');
-      }
+      };
 
     } catch (error) {
       console.error('RapidAPI error:', error);
       throw error;
+    }
+  }
+
+  // Fetch user profile to get UID and sec_uid
+  async fetchUserProfile(username) {
+    try {
+      console.log(`👤 Fetching user profile for @${username}`);
+      
+      // First, we need to get the UID from username
+      // This is a simplified approach - in reality, you might need to scrape the profile page first
+      const options = {
+        method: 'GET',
+        url: 'https://tiktok-scrapper-api.p.rapidapi.com/user_profile/',
+        params: { 
+          username: username 
+        },
+        headers: {
+          'X-RapidAPI-Key': this.rapidApiKey,
+          'X-RapidAPI-Host': 'tiktok-scrapper-api.p.rapidapi.com'
+        }
+      };
+
+      const response = await axios.request(options);
+      
+      return {
+        success: true,
+        data: response.data
+      };
+
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Fetch user videos using UID and sec_uid
+  async fetchUserVideos(uid, sec_uid, maxCursor = 0, count = 20) {
+    try {
+      console.log(`📱 Fetching user videos for UID: ${uid}`);
+      
+      const options = {
+        method: 'GET',
+        url: 'https://tiktok-scrapper-api.p.rapidapi.com/user_video/',
+        params: { 
+          uid: uid,
+          sec_uid: sec_uid,
+          max_cursor: maxCursor,
+          count: count
+        },
+        headers: {
+          'X-RapidAPI-Key': this.rapidApiKey,
+          'X-RapidAPI-Host': 'tiktok-scrapper-api.p.rapidapi.com'
+        }
+      };
+
+      const response = await axios.request(options);
+      
+      // Parse the video data
+      const videos = this.parseVideoData(response.data, uid);
+      
+      return {
+        success: true,
+        data: {
+          videos: videos,
+          hasMore: response.data.has_more || false,
+          maxCursor: response.data.max_cursor || 0
+        }
+      };
+
+    } catch (error) {
+      console.error('Error fetching user videos:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Parse video data from API response
+  parseVideoData(data, uid) {
+    try {
+      const videos = [];
+      
+      if (data.aweme_list && Array.isArray(data.aweme_list)) {
+        data.aweme_list.forEach((video) => {
+          if (video && video.aweme_id) {
+            videos.push({
+              id: video.aweme_id,
+              url: `https://www.tiktok.com/@${uid}/video/${video.aweme_id}`,
+              caption: video.desc || '',
+              posted_at: new Date((video.create_time || 0) * 1000),
+              views: video.statistics?.play_count || 0,
+              likes: video.statistics?.digg_count || 0,
+              comments: video.statistics?.comment_count || 0,
+              shares: video.statistics?.share_count || 0,
+              tier1_views: Math.floor((video.statistics?.play_count || 0) * 0.3),
+              source: 'rapidapi'
+            });
+          }
+        });
+      }
+      
+      console.log(`✅ Parsed ${videos.length} videos from RapidAPI`);
+      return videos;
+      
+    } catch (error) {
+      console.error('Error parsing video data:', error);
+      return [];
     }
   }
 

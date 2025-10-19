@@ -41,7 +41,7 @@ module.exports = {
         resultMessage += `• Total Views: ${result.data.totalViews.toLocaleString()}\n`;
         resultMessage += `• Tier 1 Views: ${result.data.tier1Views.toLocaleString()}\n`;
         resultMessage += `• Followers: ${result.data.followers.toLocaleString()}\n`;
-        resultMessage += `• Videos Found: ${result.data.videos}\n`;
+        resultMessage += `• Videos Found: ${result.data.videos.length}\n`;
         resultMessage += `• Last Updated: ${result.data.lastUpdated.toLocaleString()}\n\n`;
 
         if (result.data.videos && result.data.videos.length > 0) {
