@@ -654,6 +654,18 @@ class OnboardingHandlers {
 
   async handleApproveFinalVerification(interaction, client) {
     try {
+      // Check if user has moderator or admin role
+      const member = interaction.member;
+      const hasModRole = member.roles.cache.has(client.config.roles.moderator);
+      const hasAdminRole = member.roles.cache.has(client.config.roles.admin);
+      
+      if (!hasModRole && !hasAdminRole) {
+        return await interaction.reply({
+          content: '❌ You do not have permission to approve verifications. Only moderators and admins can use this button.',
+          ephemeral: true
+        });
+      }
+
       // Extract user ID from button customId
       const userId = interaction.customId.replace('approve_final_verification_', '');
       const user = await client.users.fetch(userId);
@@ -726,6 +738,18 @@ class OnboardingHandlers {
 
   async handleRejectFinalVerification(interaction, client) {
     try {
+      // Check if user has moderator or admin role
+      const member = interaction.member;
+      const hasModRole = member.roles.cache.has(client.config.roles.moderator);
+      const hasAdminRole = member.roles.cache.has(client.config.roles.admin);
+      
+      if (!hasModRole && !hasAdminRole) {
+        return await interaction.reply({
+          content: '❌ You do not have permission to reject verifications. Only moderators and admins can use this button.',
+          ephemeral: true
+        });
+      }
+
       // Extract user ID from button customId
       const userId = interaction.customId.replace('reject_final_verification_', '');
       const user = await client.users.fetch(userId);
