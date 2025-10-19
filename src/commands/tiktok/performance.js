@@ -61,12 +61,12 @@ module.exports = {
       if (posts.length === 0) {
         const embed = new EmbedBuilder()
           .setTitle('📊 Your Performance Stats')
-          .setDescription('You haven\'t added any TikTok posts for tracking yet.')
+          .setDescription('No TikTok posts found for your account yet.')
           .setColor(0xffa500)
           .addFields(
-            { name: '💡 Getting Started', value: 'Use `/addpost <url>` to start tracking your TikTok posts!', inline: false }
+            { name: '💡 Getting Started', value: 'Your TikTok account is automatically tracked! Videos will appear here once they\'re scraped.', inline: false }
           )
-          .setFooter({ text: 'Track your posts to see performance stats!' })
+          .setFooter({ text: 'Your account is monitored every 6 hours!' })
           .setTimestamp();
 
         return interaction.reply({

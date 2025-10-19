@@ -66,6 +66,28 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  tiktok_account_info: {
+    username: {
+      type: String,
+      default: null
+    },
+    account_url: {
+      type: String,
+      default: null
+    },
+    scraping_enabled: {
+      type: Boolean,
+      default: false
+    },
+    last_scraped_at: {
+      type: Date,
+      default: null
+    },
+    scraping_interval_hours: {
+      type: Number,
+      default: 6
+    }
+  },
   last_payout: {
     type: Date,
     default: null

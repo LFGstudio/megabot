@@ -1,4 +1,5 @@
 const cron = require('node-cron');
+const TikTokScraper = require('./tiktokScraper');
 
 class CronJobs {
   constructor() {
@@ -10,6 +11,7 @@ class CronJobs {
     this.setupStatsUpdate();
     this.setupLeaderboardUpdate();
     this.setupHealthCheck();
+    this.setupTikTokScraping();
     console.log('✅ All cron jobs initialized');
   }
 
@@ -56,6 +58,21 @@ class CronJobs {
     this.jobs.set('healthCheck', healthJob);
     healthJob.start();
     console.log('⏰ Health check job scheduled (every hour)');
+  }
+
+  setupTikTokScraping() {
+    // TikTok scraping every 6 hours
+    const tiktokJob = cron.schedule('0 */6 * * *', async () => {
+      console.log('📱 Starting scheduled TikTok scraping...');
+      await TikTokScraper.scrapeAllAccounts();
+    }, {
+      scheduled: false,
+      timezone: 'UTC'
+    });
+
+    this.jobs.set('tiktokScraping', tiktokJob);
+    tiktokJob.start();
+    console.log('⏰ TikTok scraping job scheduled (every 6 hours)');
   }
 
   async updateAllUserStats() {

@@ -63,6 +63,18 @@ const tiktokPostSchema = new mongoose.Schema({
   verified: {
     type: Boolean,
     default: false
+  },
+  monetized: {
+    type: Boolean,
+    default: false
+  },
+  monetized_at: {
+    type: Date,
+    default: null
+  },
+  auto_tracked: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true
@@ -82,11 +94,20 @@ tiktokPostSchema.methods.calculatePayout = function(payoutRate = 15) {
 };
 
 tiktokPostSchema.methods.updateViews = function(totalViews, tier1Views) {
+  const previousViews = this.total_views;
   this.total_views = totalViews;
   this.tier1_views = tier1Views;
   this.tier1_percentage = totalViews > 0 ? (tier1Views / totalViews) * 100 : 0;
   this.last_updated = new Date();
   this.calculatePayout();
+  
+  // Auto-monetize when video reaches 1K+ views
+  if (totalViews >= 1000 && !this.monetized) {
+    this.monetized = true;
+    this.monetized_at = new Date();
+    this.status = 'completed';
+  }
+  
   return this.save();
 };
 

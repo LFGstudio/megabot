@@ -59,6 +59,16 @@ module.exports = {
       // Update user with TikTok connection
       user.tiktok_username = tiktokUsername;
       user.tiktok_connected_at = new Date();
+      
+      // Set up TikTok account for automatic scraping
+      user.tiktok_account_info = {
+        username: tiktokUsername,
+        account_url: `https://www.tiktok.com/@${tiktokUsername}`,
+        scraping_enabled: true,
+        last_scraped_at: null,
+        scraping_interval_hours: 6
+      };
+      
       await user.save();
 
       // Log the action
