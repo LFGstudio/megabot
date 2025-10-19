@@ -113,7 +113,7 @@ class OnboardingHandlers {
         .addFields(
           {
             name: '📅 Day 2 Instructions',
-            value: '• Scroll naturally on your FYP — no searching\n• Engage like a real person (like, comment, follow)\n• If "Go Viral" niche appears, engage with it',
+            value: '• Search "how to go viral" and interact with a few of those videos\n• Keep scrolling and engaging with similar content\n• Engage like a real person (like, comment, follow) videos in the "how to go viral" niche.',
             inline: false
           },
           {
