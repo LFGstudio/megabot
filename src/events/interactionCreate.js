@@ -247,9 +247,13 @@ async function handleAccountVerificationModal(interaction, client) {
 
     // Create verification channel
     const verificationCategory = interaction.guild.channels.cache.get(client.config.categories.verification);
+    console.log(`🔍 Verification category ID: ${client.config.categories.verification}`);
+    console.log(`🔍 Verification category found: ${!!verificationCategory}`);
+    console.log(`🔍 Available categories:`, interaction.guild.channels.cache.filter(c => c.type === 4).map(c => `${c.name} (${c.id})`));
+    
     if (!verificationCategory) {
       return interaction.reply({
-        content: '❌ Verification category not found. Please contact an administrator.',
+        content: '❌ Verification category not found. Please ensure VERIFICATION_CATEGORY_ID is set in the environment variables.',
         ephemeral: true
       });
     }
@@ -257,6 +261,8 @@ async function handleAccountVerificationModal(interaction, client) {
     // Check if bot has permission to create channels in this category
     const botMember = interaction.guild.members.cache.get(client.user.id);
     const categoryPermissions = verificationCategory.permissionsFor(botMember);
+    console.log(`🔍 Bot permissions in category:`, categoryPermissions.toArray());
+    
     if (!categoryPermissions.has('ManageChannels')) {
       return interaction.reply({
         content: '❌ Bot does not have permission to create channels in the verification category. Please contact an administrator.',
@@ -265,6 +271,8 @@ async function handleAccountVerificationModal(interaction, client) {
     }
 
     const channelName = `account-verify-${username}-${interaction.user.username}`;
+    console.log(`🔧 Creating channel: ${channelName} in category: ${verificationCategory.name}`);
+    
     const channel = await interaction.guild.channels.create({
       name: channelName,
       type: ChannelType.GuildText,
@@ -319,10 +327,14 @@ async function handleAccountVerificationModal(interaction, client) {
       );
 
     // Send the verification message to the channel
+    console.log(`📱 Channel created successfully: ${channel.id}`);
+    console.log(`📱 Attempting to send verification message to channel: ${channel.name}`);
+    
     try {
       await channel.send({ embeds: [verificationEmbed], components: [row] });
+      console.log(`✅ Verification message sent successfully to channel: ${channel.name}`);
     } catch (sendError) {
-      console.error('Error sending verification message:', sendError);
+      console.error('❌ Error sending verification message:', sendError);
       // If we can't send to the channel, delete it and inform the user
       try {
         await channel.delete('Failed to send verification message');
