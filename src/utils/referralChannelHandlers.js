@@ -15,6 +15,7 @@ class ReferralChannelHandlers {
       }
 
       // Check if user has the Clipper Discord role
+      const member = interaction.member;
       const clipperRole = interaction.guild.roles.cache.get(client.config.roles.clipper);
       const hasClipperRole = clipperRole && member.roles.cache.has(clipperRole.id);
       
