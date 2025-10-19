@@ -1,5 +1,6 @@
 const TikTokPost = require('../models/TikTokPost');
 const User = require('../models/User');
+const TikTokWebScraper = require('./tiktokWebScraper');
 
 class TikTokScraper {
   constructor() {
@@ -40,7 +41,7 @@ class TikTokScraper {
 
       console.log(`🔍 Scraping TikTok account: @${accountInfo.username}`);
 
-      // Get all videos from the TikTok account
+      // Get all videos from the TikTok account using real web scraping
       const videos = await this.getAccountVideos(accountInfo.account_url);
       
       if (!videos || videos.length === 0) {
@@ -65,36 +66,29 @@ class TikTokScraper {
     }
   }
 
-  // Get videos from TikTok account (placeholder - needs real TikTok API)
+  // Get videos from TikTok account using real web scraping
   async getAccountVideos(accountUrl) {
     try {
-      // This is a placeholder function
-      // In reality, you would use TikTok API or web scraping
-      // For now, we'll return mock data
-      
       console.log(`🔍 Fetching videos from: ${accountUrl}`);
       
-      // Mock video data - replace with real TikTok API call
-      const mockVideos = [
-        {
-          id: `video_${Date.now()}_1`,
-          url: `${accountUrl}/video/1`,
-          caption: 'Sample video 1',
-          posted_at: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-          views: Math.floor(Math.random() * 10000),
-          tier1_views: Math.floor(Math.random() * 5000)
-        },
-        {
-          id: `video_${Date.now()}_2`,
-          url: `${accountUrl}/video/2`,
-          caption: 'Sample video 2',
-          posted_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-          views: Math.floor(Math.random() * 10000),
-          tier1_views: Math.floor(Math.random() * 5000)
-        }
-      ];
-
-      return mockVideos;
+      // Extract username from account URL
+      const username = accountUrl.split('@')[1];
+      if (!username) {
+        console.error('❌ Could not extract username from account URL');
+        return [];
+      }
+      
+      // Use real web scraping to get videos
+      const videos = await TikTokWebScraper.scrapeAccountVideos(username);
+      
+      if (videos.length === 0) {
+        console.log(`⚠️ No videos found for @${username}`);
+        return [];
+      }
+      
+      console.log(`✅ Successfully scraped ${videos.length} videos for @${username}`);
+      return videos;
+      
     } catch (error) {
       console.error('❌ Error fetching account videos:', error);
       return [];
@@ -165,6 +159,11 @@ class TikTokScraper {
     }, this.scrapingInterval);
     
     console.log('✅ TikTok scraping cron job started');
+  }
+
+  // Close scraper resources
+  async close() {
+    await TikTokWebScraper.close();
   }
 }
 

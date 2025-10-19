@@ -8,15 +8,22 @@
     "dev": "nodemon src/index.js",
     "test": "node src/test/testFlow.js"
   },
-  "keywords": ["discord", "bot", "tiktok", "clipping", "community"],
+  "keywords": [
+    "discord",
+    "bot",
+    "tiktok",
+    "clipping",
+    "community"
+  ],
   "author": "MegaViral Team",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.6.2",
     "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
     "mongoose": "^8.0.3",
     "node-cron": "^3.0.3",
-    "dotenv": "^16.3.1",
-    "axios": "^1.6.2"
+    "puppeteer": "^24.25.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
