@@ -205,7 +205,7 @@ module.exports = {
         }
       )
       .setColor(0x0099ff)
-      .setFooter({ text: 'Ready to get verified? Click below to start!' })
+      .setFooter({ text: 'Ready to get started? Click below to begin!' })
       .setTimestamp();
 
     // Add image if provided
@@ -216,9 +216,9 @@ module.exports = {
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
-          .setCustomId('submit_account_verification')
-          .setLabel(customButtonText || 'Submit Account for Verification')
-          .setEmoji('🎫')
+          .setCustomId('get_started')
+          .setLabel(customButtonText || 'Get Started')
+          .setEmoji('🚀')
           .setStyle(ButtonStyle.Primary)
       );
 

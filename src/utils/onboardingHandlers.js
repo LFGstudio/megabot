@@ -4,6 +4,153 @@ const User = require('../models/User');
 class OnboardingHandlers {
   constructor() {}
 
+  async handleGetStarted(interaction, client) {
+    try {
+      // Send 3-day step process message
+      const getStartedEmbed = new EmbedBuilder()
+        .setTitle('🚀 Your 3-Day Journey to Success')
+        .setDescription('Welcome to MegaViral! Follow this 3-day process to get started and begin earning.')
+        .addFields(
+          {
+            name: '📅 Day 1: Account Setup',
+            value: '• Create your TikTok account\n• Set up your profile\n• Choose your username format',
+            inline: false
+          },
+          {
+            name: '📅 Day 2: Verification',
+            value: '• Submit your account for verification\n• Wait for approval\n• Get ready for warm-up',
+            inline: false
+          },
+          {
+            name: '📅 Day 3: Algorithm Warm-up',
+            value: '• Follow the 3-day warm-up process\n• Engage with relevant content\n• Start posting and earning!',
+            inline: false
+          }
+        )
+        .setColor(0x00ff00)
+        .setFooter({ text: 'Ready to begin? Let\'s start with Day 1!' })
+        .setTimestamp();
+
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId('start_day_1')
+            .setLabel('Start Day 1: Account Setup')
+            .setEmoji('📱')
+            .setStyle(ButtonStyle.Primary)
+        );
+
+      await interaction.reply({
+        embeds: [getStartedEmbed],
+        components: [row]
+      });
+
+    } catch (error) {
+      console.error('Error in handleGetStarted:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while starting your journey.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleStartDay1(interaction, client) {
+    try {
+      // Send Day 1 instructions
+      const day1Embed = new EmbedBuilder()
+        .setTitle('📱 Day 1: Account Setup')
+        .setDescription('Let\'s create your TikTok account and set it up for success!')
+        .addFields(
+          {
+            name: '🎯 Create Your TikTok Account',
+            value: '• Use email or phone login\n• Make sure you\'re in a Tier 1 country or use a VPN\n• Choose a clean, professional username',
+            inline: false
+          },
+          {
+            name: '👤 Username Format Examples',
+            value: '• amanda.goviral\n• harper.viral\n• growth.claudia\n• tips.by.jenna\n\nKeep it clean, short, and authentic!',
+            inline: false
+          },
+          {
+            name: '🖼️ Profile Setup',
+            value: '• Use a friendly selfie or professional avatar\n• Display name: "Grow With [Your Name]"\n• Bio: "Helping small creators grow 💖\nApp you\'re looking for is \'MegaViral: AI Creator Agent\'"',
+            inline: false
+          }
+        )
+        .setColor(0xff8800)
+        .setFooter({ text: 'Complete these steps, then click below to continue!' })
+        .setTimestamp();
+
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId('complete_day_1')
+            .setLabel('I\'ve Completed Day 1')
+            .setEmoji('✅')
+            .setStyle(ButtonStyle.Success)
+        );
+
+      await interaction.reply({
+        embeds: [day1Embed],
+        components: [row]
+      });
+
+    } catch (error) {
+      console.error('Error in handleStartDay1:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while starting Day 1.',
+        ephemeral: true
+      });
+    }
+  }
+
+  async handleCompleteDay1(interaction, client) {
+    try {
+      // Send Day 2 instructions
+      const day2Embed = new EmbedBuilder()
+        .setTitle('🎫 Day 2: Verification')
+        .setDescription('Great job! Now let\'s get your account verified so you can start earning.')
+        .addFields(
+          {
+            name: '📋 What Happens Next',
+            value: '• Your account will be reviewed by our team\n• We\'ll check your profile setup\n• Verification typically takes 24-48 hours',
+            inline: false
+          },
+          {
+            name: '✅ Verification Checklist',
+            value: '• Account follows username format\n• Profile is professional and complete\n• Bio includes MegaViral branding\n• Account is in Tier 1 country or using VPN',
+            inline: false
+          },
+          {
+            name: '⏰ Next Steps',
+            value: 'Once verified, you\'ll receive instructions for Day 3: Algorithm Warm-up',
+            inline: false
+          }
+        )
+        .setColor(0x0099ff)
+        .setFooter({ text: 'Your account is now under review!' })
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [day2Embed],
+        ephemeral: true
+      });
+
+      // Log the action
+      await client.logAction(
+        'Day 1 Completed',
+        `<@${interaction.user.id}> completed Day 1 of onboarding`
+      );
+
+    } catch (error) {
+      console.error('Error in handleCompleteDay1:', error);
+      await interaction.reply({
+        content: '❌ An error occurred while completing Day 1.',
+        ephemeral: true
+      });
+    }
+  }
+
   async handleStartOnboarding(interaction, client) {
     try {
       // Assign "Onboarding Started" role

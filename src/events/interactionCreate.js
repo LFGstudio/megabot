@@ -108,6 +108,15 @@ async function handleButtonInteraction(interaction, client) {
     } else if (customId === 'copy_referral_link') {
       await handleCopyReferralLink(interaction, client);
       return;
+    } else if (customId === 'get_started') {
+      await OnboardingHandlers.handleGetStarted(interaction, client);
+      return;
+    } else if (customId === 'start_day_1') {
+      await OnboardingHandlers.handleStartDay1(interaction, client);
+      return;
+    } else if (customId === 'complete_day_1') {
+      await OnboardingHandlers.handleCompleteDay1(interaction, client);
+      return;
     }
 
     // Handle onboarding support buttons
