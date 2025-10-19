@@ -981,8 +981,12 @@ async function handleWarmupVerification(interaction, client, action, userId) {
   try {
     console.log(`🔍 Starting permission check`);
     // Check if user has admin or moderator permissions
+    console.log(`🔍 Admin role ID: ${client.config.roles.admin}`);
+    console.log(`🔍 Moderator role ID: ${client.config.roles.moderator}`);
     const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
+    console.log(`🔍 Has admin role: ${hasAdminRole}`);
     const hasModeratorRole = interaction.member.roles.cache.has(client.config.roles.moderator);
+    console.log(`🔍 Has moderator role: ${hasModeratorRole}`);
     
     if (!hasAdminRole && !hasModeratorRole) {
       return interaction.reply({
