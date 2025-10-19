@@ -997,7 +997,9 @@ async function handleWarmupVerification(interaction, client, action, userId) {
       });
     }
 
+    console.log(`🔍 Looking up user in database: ${userId}`);
     const user = await User.findOne({ discord_id: userId });
+    console.log(`🔍 User found: ${!!user}`);
     if (!user) {
       return interaction.reply({
         content: '❌ User not found in database.',
