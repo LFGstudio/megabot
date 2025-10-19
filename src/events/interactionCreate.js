@@ -974,9 +974,10 @@ async function handleAccountCreationVerification(interaction, client, action, us
 }
 
 async function handleWarmupVerification(interaction, client, action, userId) {
+  console.log(`🚀 ENTERING handleWarmupVerification function`);
   const { EmbedBuilder } = require('discord.js');
   const User = require('../models/User');
-  console.log(`🚀 ENTERING handleWarmupVerification function`);
+  console.log(`🔍 Imports loaded successfully`);
   try {
     // Check if user has admin or moderator permissions
     const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
