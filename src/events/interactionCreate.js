@@ -233,11 +233,19 @@ async function handleButtonInteraction(interaction, client) {
     }
 
   } catch (error) {
-    console.error('Error handling button interaction:', error);
-    await interaction.reply({
-      content: '❌ An error occurred while processing your request.',
-      ephemeral: true
-    });
+    console.error('❌ Error in handleButtonInteraction:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Button customId:', interaction.customId);
+    console.error('❌ Interaction type:', interaction.type);
+    
+    try {
+      await interaction.reply({
+        content: `❌ An error occurred while processing your request: ${error.message}`,
+        ephemeral: true
+      });
+    } catch (replyError) {
+      console.error('❌ Error replying to button interaction:', replyError);
+    }
   }
 }
 
@@ -914,11 +922,24 @@ async function handleAccountCreationVerification(interaction, client, action, us
     }
 
   } catch (error) {
-    console.error('Error in handleAccountCreationVerification:', error);
-    await interaction.reply({
-      content: '❌ An error occurred while processing the verification.',
-      ephemeral: true
+    console.error('❌ Error in handleAccountCreationVerification:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      method: error.method,
+      url: error.url
     });
+    
+    try {
+      await interaction.reply({
+        content: `❌ An error occurred while processing the verification: ${error.message}`,
+        ephemeral: true
+      });
+    } catch (replyError) {
+      console.error('❌ Error replying to interaction:', replyError);
+    }
   }
 }
 
