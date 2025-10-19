@@ -6,44 +6,121 @@ class OnboardingHandlers {
 
   async handleGetStarted(interaction, client) {
     try {
-      // Send 3-day step process message
-      const getStartedEmbed = new EmbedBuilder()
-        .setTitle('🚀 Your 3-Day Journey to Success')
-        .setDescription('Welcome to MegaViral! Follow this 3-day process to get started and begin earning.')
-        .addFields(
-          {
-            name: '📅 Day 1: Account Setup',
-            value: '• Create your TikTok account\n• Set up your profile\n• Choose your username format',
-            inline: false
-          },
-          {
-            name: '📅 Day 2: Verification',
-            value: '• Submit your account for verification\n• Wait for approval\n• Get ready for warm-up',
-            inline: false
-          },
-          {
-            name: '📅 Day 3: Algorithm Warm-up',
-            value: '• Follow the 3-day warm-up process\n• Engage with relevant content\n• Start posting and earning!',
-            inline: false
-          }
-        )
-        .setColor(0x00ff00)
-        .setFooter({ text: 'Ready to begin? Let\'s start with Day 1!' })
-        .setTimestamp();
+      // Find onboarding category
+      const onboardingCategory = client.channels.cache.find(
+        channel => channel.name.toLowerCase().includes('onboarding') && channel.type === 4
+      );
 
-      const row = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId('start_day_1')
-            .setLabel('Start Day 1: Account Setup')
-            .setEmoji('📱')
-            .setStyle(ButtonStyle.Primary)
-        );
+      if (!onboardingCategory) {
+        return await interaction.reply({
+          content: '❌ Onboarding category not found. Please contact an administrator.',
+          ephemeral: true
+        });
+      }
 
-      await interaction.reply({
-        embeds: [getStartedEmbed],
-        components: [row]
-      });
+      // Create dedicated onboarding channel for user
+      const channelName = `onboarding-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      
+      try {
+        const onboardingChannel = await onboardingCategory.guild.channels.create({
+          name: channelName,
+          type: 0, // Text channel
+          parent: onboardingCategory.id,
+          topic: `Personal onboarding journey for ${interaction.user.tag}`,
+          permissionOverwrites: [
+            {
+              id: interaction.guild.roles.everyone.id,
+              deny: ['ViewChannel']
+            },
+            {
+              id: client.user.id,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'EmbedLinks', 'AttachFiles']
+            },
+            {
+              id: interaction.user.id,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+            },
+            {
+              id: client.config.roles.moderator,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages']
+            },
+            {
+              id: client.config.roles.admin,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages', 'ManageChannels']
+            }
+          ]
+        });
+
+        // Send welcome message to the new channel
+        const getStartedEmbed = new EmbedBuilder()
+          .setTitle('🚀 Your 3-Day Journey to Success')
+          .setDescription(`Welcome ${interaction.user}! You now have your own private onboarding channel.`)
+          .addFields(
+            {
+              name: '📅 Day 1: Account Setup',
+              value: '• Create your TikTok account\n• Set up your profile\n• Choose your username format',
+              inline: false
+            },
+            {
+              name: '📅 Day 2: Algorithm Warm-up',
+              value: '• Follow the warm-up process\n• Engage with relevant content\n• Build algorithm history',
+              inline: false
+            },
+            {
+              name: '📅 Day 3: Final Branding & Verification',
+              value: '• Complete your branding\n• Submit for final verification\n• Start posting and earning!',
+              inline: false
+            },
+            {
+              name: '🔒 Privacy',
+              value: 'This is your personal onboarding channel. Only you and our team can see your progress.',
+              inline: false
+            }
+          )
+          .setColor(0x00ff00)
+          .setFooter({ text: 'Ready to begin? Let\'s start with Day 1!' })
+          .setTimestamp();
+
+        const row = new ActionRowBuilder()
+          .addComponents(
+            new ButtonBuilder()
+              .setCustomId('start_day_1')
+              .setLabel('Start Day 1: Account Setup')
+              .setEmoji('📱')
+              .setStyle(ButtonStyle.Primary)
+          );
+
+        // Post the welcome message in the new channel
+        await onboardingChannel.send({ 
+          content: `Welcome ${interaction.user}! 👋`,
+          embeds: [getStartedEmbed], 
+          components: [row] 
+        });
+
+        // Confirm to the user in the original channel
+        const confirmEmbed = new EmbedBuilder()
+          .setTitle('✅ Onboarding Channel Created!')
+          .setDescription(`Your personal onboarding journey has started!`)
+          .addFields(
+            { name: '📋 Your Channel', value: `#${channelName}`, inline: true },
+            { name: '🎯 Next Step', value: 'Check your new channel to begin Day 1', inline: true }
+          )
+          .setColor(0x00ff00)
+          .setFooter({ text: 'Your private onboarding space is ready!' })
+          .setTimestamp();
+
+        await interaction.reply({
+          embeds: [confirmEmbed],
+          ephemeral: true
+        });
+
+      } catch (channelError) {
+        console.error('Error creating onboarding channel:', channelError);
+        return await interaction.reply({
+          content: '❌ Failed to create onboarding channel. Please contact an administrator.',
+          ephemeral: true
+        });
+      }
 
     } catch (error) {
       console.error('Error in handleGetStarted:', error);
