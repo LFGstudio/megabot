@@ -300,7 +300,7 @@ module.exports = {
         },
         {
           name: '📅 Day 3 — Brand Your Account:',
-          value: '• Username, display name, and profile photo should now be set\n• Make sure your bio matches the example:\n  "Helping small creators grow 💖\n  App you\'re looking for is \'Go Viral: AI Creator Assistant\'"\n• Your FYP should now mostly show "Go Viral" or creator-growth content',
+          value: '• Username, display name, and profile photo should now be set\n• Make sure your bio matches the example:\n  "Helping small creators grow 💖\n  App you\'re looking for is \'MegaViral: AI Creator Agent\'"\n• Your FYP should now mostly show "Go Viral" or creator-growth content',
           inline: false
         }
       )
