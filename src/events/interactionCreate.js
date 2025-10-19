@@ -509,6 +509,17 @@ async function handleButtonInteraction(interaction, client) {
       return;
     }
     
+    // Handle account verification approval/rejection
+    if (customId.startsWith('verify_account_') || customId.startsWith('reject_account_')) {
+      const parts = customId.split('_');
+      const action = parts[1]; // 'verify' or 'reject'
+      const userId = parts[2];
+      const username = parts[3];
+      
+      await handleAccountVerification(interaction, client, action, userId, username);
+      return;
+    }
+
     // Handle verification approval/rejection
     if (customId.startsWith('verify_approve_') || customId.startsWith('verify_reject_')) {
       const userId = customId.split('_')[2];
@@ -900,6 +911,254 @@ async function handleButtonInteraction(interaction, client) {
     console.error('Error handling button interaction:', error);
     await interaction.reply({
       content: '❌ An error occurred while processing your request.',
+      ephemeral: true
+    });
+  }
+}
+
+async function handleAddTikTokAccountModal(interaction, client) {
+  try {
+    const username = interaction.fields.getTextInputValue('tiktok_username');
+    const displayName = interaction.fields.getTextInputValue('display_name') || username;
+    const notes = interaction.fields.getTextInputValue('account_notes') || '';
+
+    // Check if account already exists
+    const TikTokAccount = require('../models/TikTokAccount');
+    const existingAccount = await TikTokAccount.getAccountByUsername(username);
+    if (existingAccount) {
+      return interaction.reply({
+        content: '❌ This TikTok account is already being tracked by another user.',
+        ephemeral: true
+      });
+    }
+
+    // Create verification channel
+    const verificationCategory = interaction.guild.channels.cache.get(client.config.categories.verification);
+    if (!verificationCategory) {
+      return interaction.reply({
+        content: '❌ Verification category not found. Please contact an administrator.',
+        ephemeral: true
+      });
+    }
+
+    const channelName = `tiktok-verify-${username}-${interaction.user.username}`;
+    const channel = await interaction.guild.channels.create({
+      name: channelName,
+      type: ChannelType.GuildText,
+      parent: verificationCategory,
+      topic: `TikTok Account Verification for ${interaction.user.tag} - @${username}`,
+      permissionOverwrites: [
+        {
+          id: interaction.guild.roles.everyone.id,
+          deny: [PermissionFlagsBits.ViewChannel]
+        },
+        {
+          id: interaction.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
+        },
+        {
+          id: client.config.roles.admin,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
+        },
+        {
+          id: client.config.roles.moderator || client.config.roles.admin,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
+        }
+      ]
+    });
+
+    // Create verification embed with account details
+    const verificationEmbed = new EmbedBuilder()
+      .setTitle('📱 TikTok Account Verification')
+      .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Account:** @${username}`)
+      .setColor(0xffa500)
+      .addFields(
+        { name: '👤 Username', value: `@${username}`, inline: true },
+        { name: '📝 Display Name', value: displayName, inline: true },
+        { name: '📋 Notes', value: notes || 'None provided', inline: false },
+        { name: '🔗 Account URL', value: `https://www.tiktok.com/@${username}`, inline: false }
+      )
+      .setFooter({ text: 'Review the account details and click Verify or Reject' })
+      .setTimestamp();
+
+    // Create action row with verification buttons
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId(`verify_account_${interaction.user.id}_${username}`)
+          .setLabel('✅ Verify Account')
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId(`reject_account_${interaction.user.id}_${username}`)
+          .setLabel('❌ Reject Account')
+          .setStyle(ButtonStyle.Danger)
+      );
+
+    await channel.send({ embeds: [verificationEmbed], components: [row] });
+
+    // Send confirmation to user
+    const confirmEmbed = new EmbedBuilder()
+      .setTitle('✅ Account Verification Submitted')
+      .setDescription(`Your TikTok account **@${username}** has been submitted for verification.`)
+      .setColor(0x00ff00)
+      .addFields(
+        { name: '📱 Account', value: `@${username}`, inline: true },
+        { name: '📋 Channel', value: `<#${channel.id}>`, inline: true },
+        { name: '⏰ Status', value: 'Pending Review', inline: true }
+      )
+      .setFooter({ text: 'A moderator will review your account shortly' })
+      .setTimestamp();
+
+    await interaction.reply({
+      embeds: [confirmEmbed],
+      ephemeral: true
+    });
+
+    // Log the action
+    await client.logAction(
+      'TikTok Account Verification Requested',
+      `<@${interaction.user.id}> requested verification for TikTok account @${username}`
+    );
+
+  } catch (error) {
+    console.error('Error in handleAddTikTokAccountModal:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while processing your account verification request.',
+      ephemeral: true
+    });
+  }
+}
+
+async function handleAccountVerification(interaction, client, action, userId, username) {
+  try {
+    // Check if user has admin or moderator permissions
+    const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+    const isModerator = client.config.roles.moderator && interaction.member.roles.cache.has(client.config.roles.moderator);
+    
+    if (!isAdmin && !isModerator) {
+      return interaction.reply({
+        content: '❌ You need administrator or moderator permissions to verify accounts.',
+        ephemeral: true
+      });
+    }
+
+    const TikTokAccount = require('../models/TikTokAccount');
+    const User = require('../models/User');
+
+    if (action === 'verify') {
+      // Check if account already exists
+      const existingAccount = await TikTokAccount.getAccountByUsername(username);
+      if (existingAccount) {
+        return interaction.reply({
+          content: '❌ This TikTok account is already being tracked.',
+          ephemeral: true
+        });
+      }
+
+      // Create new TikTok account
+      const newAccount = new TikTokAccount({
+        user_id: userId,
+        username: username,
+        account_url: `https://www.tiktok.com/@${username}`,
+        scraping_enabled: true,
+        status: 'active'
+      });
+
+      await newAccount.save();
+
+      // Update user's account count
+      const user = await User.findOne({ discord_id: userId });
+      if (user) {
+        user.tiktok_posts_count = (user.tiktok_posts_count || 0) + 1;
+        await user.save();
+      }
+
+      // Create success embed
+      const successEmbed = new EmbedBuilder()
+        .setTitle('✅ Account Verified Successfully')
+        .setDescription(`TikTok account **@${username}** has been verified and added to the database.`)
+        .setColor(0x00ff00)
+        .addFields(
+          { name: '👤 User', value: `<@${userId}>`, inline: true },
+          { name: '📱 Account', value: `@${username}`, inline: true },
+          { name: '🔄 Scraping', value: 'Enabled', inline: true }
+        )
+        .setFooter({ text: 'Account will be scraped every 6 hours' })
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [successEmbed] });
+
+      // Send notification to user
+      try {
+        const user = await client.users.fetch(userId);
+        const userEmbed = new EmbedBuilder()
+          .setTitle('🎉 TikTok Account Verified!')
+          .setDescription(`Your TikTok account **@${username}** has been verified and is now being tracked!`)
+          .setColor(0x00ff00)
+          .addFields(
+            { name: '📱 Account', value: `@${username}`, inline: true },
+            { name: '🔄 Status', value: 'Active Tracking', inline: true }
+          )
+          .setFooter({ text: 'Your account will be scraped every 6 hours for new videos!' })
+          .setTimestamp();
+
+        await user.send({ embeds: [userEmbed] });
+      } catch (dmError) {
+        console.log(`Could not send DM to user ${userId}:`, dmError.message);
+      }
+
+      // Log the action
+      await client.logAction(
+        'TikTok Account Verified',
+        `<@${interaction.user.id}> verified TikTok account @${username} for <@${userId}>`
+      );
+
+    } else if (action === 'reject') {
+      // Create rejection embed
+      const rejectEmbed = new EmbedBuilder()
+        .setTitle('❌ Account Rejected')
+        .setDescription(`TikTok account **@${username}** has been rejected.`)
+        .setColor(0xff0000)
+        .addFields(
+          { name: '👤 User', value: `<@${userId}>`, inline: true },
+          { name: '📱 Account', value: `@${username}`, inline: true },
+          { name: '❌ Status', value: 'Rejected', inline: true }
+        )
+        .setFooter({ text: 'Account was not added to the database' })
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [rejectEmbed] });
+
+      // Send notification to user
+      try {
+        const user = await client.users.fetch(userId);
+        const userEmbed = new EmbedBuilder()
+          .setTitle('❌ TikTok Account Rejected')
+          .setDescription(`Your TikTok account **@${username}** has been rejected.`)
+          .setColor(0xff0000)
+          .addFields(
+            { name: '📱 Account', value: `@${username}`, inline: true },
+            { name: '❌ Status', value: 'Rejected', inline: true }
+          )
+          .setFooter({ text: 'Please contact support if you believe this was an error' })
+          .setTimestamp();
+
+        await user.send({ embeds: [userEmbed] });
+      } catch (dmError) {
+        console.log(`Could not send DM to user ${userId}:`, dmError.message);
+      }
+
+      // Log the action
+      await client.logAction(
+        'TikTok Account Rejected',
+        `<@${interaction.user.id}> rejected TikTok account @${username} for <@${userId}>`
+      );
+    }
+
+  } catch (error) {
+    console.error('Error in handleAccountVerification:', error);
+    await interaction.reply({
+      content: '❌ An error occurred while processing the account verification.',
       ephemeral: true
     });
   }
