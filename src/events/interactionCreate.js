@@ -160,12 +160,22 @@ async function handleButtonInteraction(interaction, client) {
     // Handle account creation verification
     if (customId.startsWith('verify_account_creation_') || customId.startsWith('reject_account_creation_')) {
       console.log(`🔍 Handling account creation verification: ${customId}`);
-      const userId = customId.replace('verify_account_creation_', '').replace('reject_account_creation_', '');
-      const action = customId.startsWith('verify_account_creation_') ? 'verify_account' : 'reject_account';
-      
-      console.log(`🔍 Parsed - userId: ${userId}, action: ${action}`);
-      await handleAccountCreationVerification(interaction, client, action, userId);
-      return;
+      try {
+        const userId = customId.replace('verify_account_creation_', '').replace('reject_account_creation_', '');
+        const action = customId.startsWith('verify_account_creation_') ? 'verify_account' : 'reject_account';
+        
+        console.log(`🔍 Parsed - userId: ${userId}, action: ${action}`);
+        await handleAccountCreationVerification(interaction, client, action, userId);
+        return;
+      } catch (error) {
+        console.error('❌ Error in account creation verification button handler:', error);
+        console.error('❌ Error stack:', error.stack);
+        await interaction.reply({
+          content: `❌ Error processing verification: ${error.message}`,
+          ephemeral: true
+        });
+        return;
+      }
     }
 
     // Handle warmup verification
@@ -822,6 +832,7 @@ async function handleTestModal(interaction, client) {
 }
 
 async function handleAccountCreationVerification(interaction, client, action, userId) {
+  console.log(`🚀 ENTERING handleAccountCreationVerification function`);
   try {
     console.log(`🔍 Processing account creation verification: action=${action}, userId=${userId}`);
     console.log(`🔍 User roles:`, interaction.member.roles.cache.map(r => `${r.name} (${r.id})`));
