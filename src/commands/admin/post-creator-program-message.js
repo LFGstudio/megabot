@@ -6,7 +6,11 @@ module.exports = {
   type: 'slash',
   data: new SlashCommandBuilder()
     .setName('post-creator-program-message')
-    .setDescription('Post the creator program welcome message to the creator-program channel')
+    .setDescription('Post the creator program welcome message to a channel')
+    .addChannelOption(option =>
+      option.setName('channel')
+        .setDescription('Channel to post the message to (defaults to creator-program)')
+        .setRequired(false))
     .addAttachmentOption(option =>
       option.setName('image')
         .setDescription('Optional image to include with the message')
@@ -14,17 +18,23 @@ module.exports = {
 
   async execute(interaction, client) {
     try {
-      // Get the image attachment if provided
+      // Get the image attachment and channel if provided
       const imageAttachment = interaction.options.getAttachment('image');
+      const targetChannel = interaction.options.getChannel('channel');
 
-      // Find the creator-program channel
-      const creatorProgramChannel = client.channels.cache.find(
-        channel => channel.name === 'creator-program' && channel.type === 0
-      );
+      // Determine which channel to use
+      let creatorProgramChannel = targetChannel;
+      
+      if (!creatorProgramChannel) {
+        // Try to find the creator-program channel
+        creatorProgramChannel = client.channels.cache.find(
+          channel => channel.name === 'creator-program' && channel.type === 0
+        );
+      }
 
       if (!creatorProgramChannel) {
         return await interaction.reply({
-          content: '❌ Creator-program channel not found. Please make sure the channel exists.',
+          content: '❌ No target channel found. Please specify a channel or create a "creator-program" channel.',
           ephemeral: true
         });
       }
