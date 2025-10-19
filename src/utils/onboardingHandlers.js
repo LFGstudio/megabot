@@ -305,6 +305,10 @@ class OnboardingHandlers {
               deny: ['ViewChannel']
             },
             {
+              id: client.user.id,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'EmbedLinks', 'AttachFiles']
+            },
+            {
               id: interaction.user.id,
               allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
             },
