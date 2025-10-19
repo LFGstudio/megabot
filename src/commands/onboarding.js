@@ -240,7 +240,7 @@ module.exports = {
       .addFields(
         {
           name: '📱 Here\'s How to Create Your Account:',
-          value: '1️⃣ Create a new TikTok account (email or phone login)\n2️⃣ Choose a username using this format:\n   • amanda.goviral\n   • harper.viral\n   • growth.claudia\n   • tips.by.jenna\n\n   Keep it clean, short, and authentic.',
+          value: '1️⃣ Create a new TikTok account (email or phone login) Make sure you are in a tier 1 country or use a VPN!\n2️⃣ Choose a username using this format:\n   • amanda.goviral\n   • harper.viral\n   • growth.claudia\n   • tips.by.jenna\n\n   Keep it clean, short, and authentic.',
           inline: false
         },
         {
@@ -250,7 +250,7 @@ module.exports = {
         },
         {
           name: '🖼️ Profile Setup:',
-          value: '• Use a friendly selfie or Ghibli-style avatar\n• Add a short bio like:\n  "Helping small creators grow 💖\n  App you\'re looking for is \'Go Viral: AI Creator Assistant\'"',
+          value: '• Use a friendly selfie or Ghibli-style avatar\n• Add a short bio like:\n  "Helping small creators grow 💖\n  App you\'re looking for is \'MegaViral: AI Creator Agent\'"',
           inline: false
         }
       )
