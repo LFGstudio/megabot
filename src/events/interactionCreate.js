@@ -1192,8 +1192,3 @@ async function handleButtonInteraction(interaction, client) {
     });
   }
 }
-
-module.exports = {
-  name: 'interactionCreate',
-  execute
-};
