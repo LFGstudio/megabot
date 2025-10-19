@@ -182,9 +182,11 @@ async function handleButtonInteraction(interaction, client) {
 
     // Handle warmup verification
     if (customId.startsWith('verify_warmup_') || customId.startsWith('reject_warmup_')) {
+      console.log(`🔍 Handling warmup verification: ${customId}`);
       const userId = customId.split('_')[2];
       const action = customId.split('_')[1]; // 'verify' or 'reject'
       
+      console.log(`🔍 Warmup verification - userId: ${userId}, action: ${action}`);
       await handleWarmupVerification(interaction, client, action, userId);
       return;
     }
@@ -965,6 +967,7 @@ async function handleAccountCreationVerification(interaction, client, action, us
 async function handleWarmupVerification(interaction, client, action, userId) {
   const { EmbedBuilder } = require('discord.js');
   const User = require('../models/User');
+  console.log(`🚀 ENTERING handleWarmupVerification function`);
   try {
     // Check if user has admin or moderator permissions
     const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
