@@ -237,7 +237,7 @@ async function handleButtonInteraction(interaction, client) {
 }
 
 async function handleAccountVerificationModal(interaction, client) {
-  const { ChannelType } = require('discord.js');
+  const { ChannelType, PermissionFlagsBits } = require('discord.js');
   
   try {
     const username = interaction.fields.getTextInputValue('tiktok_username');
@@ -345,7 +345,7 @@ async function handleAccountVerificationModal(interaction, client) {
 }
 
 async function handleTikTokVerificationModal(interaction, client) {
-  const { ChannelType } = require('discord.js');
+  const { ChannelType, PermissionFlagsBits } = require('discord.js');
   
   try {
     const username = interaction.fields.getTextInputValue('tiktok_username');
@@ -440,7 +440,7 @@ async function handleTikTokVerificationModal(interaction, client) {
 }
 
 async function handleWarmupVerificationModal(interaction, client) {
-  const { ChannelType } = require('discord.js');
+  const { ChannelType, PermissionFlagsBits } = require('discord.js');
   
   try {
     const warmupCompleted = interaction.fields.getTextInputValue('warmup_completed');
@@ -562,7 +562,7 @@ async function handleCopyReferralLink(interaction, client) {
 }
 
 async function handleAddTikTokAccountModal(interaction, client) {
-  const { ChannelType } = require('discord.js');
+  const { ChannelType, PermissionFlagsBits } = require('discord.js');
   
   try {
     const username = interaction.fields.getTextInputValue('tiktok_username');
