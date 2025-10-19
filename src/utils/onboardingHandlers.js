@@ -282,48 +282,84 @@ class OnboardingHandlers {
         });
       }
 
-      // Find admin channel for verification
-      const adminChannel = client.channels.cache.get(client.config.channels.admin);
-      if (!adminChannel) {
+      // Find verification category
+      const verificationCategory = client.channels.cache.get(client.config.categories.verification);
+      if (!verificationCategory) {
         return await interaction.reply({
-          content: '❌ Admin channel not found. Please contact an administrator.',
+          content: '❌ Verification category not found. Please contact an administrator.',
           ephemeral: true
         });
       }
 
-      // Create verification embed
-      const verificationEmbed = new EmbedBuilder()
-        .setTitle('🎫 Final Verification Request')
-        .setColor(0xff6b6b)
-        .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Status:** Ready for Final Verification`)
-        .addFields(
-          { name: '📱 TikTok Username', value: tiktokUsername, inline: true },
-          { name: '🔗 Account URL', value: accountUrl, inline: true },
-          { name: '🔥 Warm-up Completed', value: '✅ Confirmed', inline: true },
-          { name: '📅 Submitted', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: false }
-        )
-        .setFooter({ text: 'Review account and approve for earning access' })
-        .setTimestamp();
+      // Create private verification channel
+      const channelName = `verification-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      
+      try {
+        const verificationChannel = await verificationCategory.guild.channels.create({
+          name: channelName,
+          type: 0, // Text channel
+          parent: verificationCategory.id,
+          permissionOverwrites: [
+            {
+              id: interaction.guild.roles.everyone.id,
+              deny: ['ViewChannel']
+            },
+            {
+              id: interaction.user.id,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+            },
+            {
+              id: client.config.roles.moderator,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages']
+            },
+            {
+              id: client.config.roles.admin,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages', 'ManageChannels']
+            }
+          ]
+        });
 
-      // Create action row with verification buttons
-      const row = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId(`approve_final_verification_${interaction.user.id}`)
-            .setLabel('✅ Approve & Grant Access')
-            .setStyle(ButtonStyle.Success),
-          new ButtonBuilder()
-            .setCustomId(`reject_final_verification_${interaction.user.id}`)
-            .setLabel('❌ Reject')
-            .setStyle(ButtonStyle.Danger)
-        );
+        // Create verification embed
+        const verificationEmbed = new EmbedBuilder()
+          .setTitle('🎫 Final Verification Request')
+          .setColor(0xff6b6b)
+          .setDescription(`**User:** ${interaction.user.tag} (<@${interaction.user.id}>)\n**Status:** Ready for Final Verification`)
+          .addFields(
+            { name: '📱 TikTok Username', value: tiktokUsername, inline: true },
+            { name: '🔗 Account URL', value: accountUrl, inline: true },
+            { name: '🔥 Warm-up Completed', value: '✅ Confirmed', inline: true },
+            { name: '📅 Submitted', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: false }
+          )
+          .setFooter({ text: 'Review account and approve for earning access' })
+          .setTimestamp();
 
-      // Send verification request to admin channel
-      await adminChannel.send({ 
-        content: `@here Final verification request from <@${interaction.user.id}>`,
-        embeds: [verificationEmbed], 
-        components: [row] 
-      });
+        // Create action row with verification buttons
+        const row = new ActionRowBuilder()
+          .addComponents(
+            new ButtonBuilder()
+              .setCustomId(`approve_final_verification_${interaction.user.id}`)
+              .setLabel('✅ Approve & Grant Access')
+              .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+              .setCustomId(`reject_final_verification_${interaction.user.id}`)
+              .setLabel('❌ Reject')
+              .setStyle(ButtonStyle.Danger)
+          );
+
+        // Send verification request to the new channel
+        await verificationChannel.send({ 
+          content: `@here Final verification request from <@${interaction.user.id}>`,
+          embeds: [verificationEmbed], 
+          components: [row] 
+        });
+
+      } catch (channelError) {
+        console.error('Error creating verification channel:', channelError);
+        return await interaction.reply({
+          content: '❌ Failed to create verification channel. Please contact an administrator.',
+          ephemeral: true
+        });
+      }
 
       // Confirm submission to user
       const confirmEmbed = new EmbedBuilder()
@@ -332,6 +368,7 @@ class OnboardingHandlers {
         .setDescription('Your account has been submitted for final verification.')
         .addFields(
           { name: '📱 Account', value: tiktokUsername, inline: true },
+          { name: '📋 Verification Channel', value: `#${channelName}`, inline: true },
           { name: '⏰ Review Time', value: '24-48 hours', inline: true },
           { name: '🎉 What\'s Next', value: 'Once approved, you\'ll receive access to our content library and can start earning!', inline: false }
         )
