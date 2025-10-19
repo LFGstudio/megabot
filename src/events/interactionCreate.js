@@ -979,6 +979,7 @@ async function handleWarmupVerification(interaction, client, action, userId) {
   const User = require('../models/User');
   console.log(`🔍 Imports loaded successfully`);
   try {
+    console.log(`🔍 Starting permission check`);
     // Check if user has admin or moderator permissions
     const hasAdminRole = interaction.member.roles.cache.has(client.config.roles.admin);
     const hasModeratorRole = interaction.member.roles.cache.has(client.config.roles.moderator);
