@@ -245,7 +245,7 @@ class OnboardingHandlers {
 
       const warmupConfirmation = new TextInputBuilder()
         .setCustomId('warmup_confirmation')
-        .setLabel('Confirm you completed the 3-day warm-up process')
+        .setLabel('Confirm 3-day warm-up completion')
         .setStyle(TextInputStyle.Short)
         .setPlaceholder('Type "YES" to confirm')
         .setRequired(true);
