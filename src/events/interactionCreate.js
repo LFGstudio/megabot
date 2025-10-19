@@ -148,18 +148,7 @@ async function handleButtonInteraction(interaction, client) {
       return;
     }
     
-    // Handle account verification approval/rejection
-    if (customId.startsWith('verify_account_') || customId.startsWith('reject_account_')) {
-      const parts = customId.split('_');
-      const action = parts[1]; // 'verify' or 'reject'
-      const userId = parts[2];
-      const username = parts[3];
-      
-      await handleAccountVerification(interaction, client, action, userId, username);
-      return;
-    }
-
-    // Handle account creation verification
+    // Handle account creation verification (MUST come before general account verification)
     if (customId.startsWith('verify_account_creation_') || customId.startsWith('reject_account_creation_')) {
       console.log(`🔍 Handling account creation verification: ${customId}`);
       try {
@@ -178,6 +167,17 @@ async function handleButtonInteraction(interaction, client) {
         });
         return;
       }
+    }
+
+    // Handle account verification approval/rejection (general)
+    if (customId.startsWith('verify_account_') || customId.startsWith('reject_account_')) {
+      const parts = customId.split('_');
+      const action = parts[1]; // 'verify' or 'reject'
+      const userId = parts[2];
+      const username = parts[3];
+      
+      await handleAccountVerification(interaction, client, action, userId, username);
+      return;
     }
 
     // Handle warmup verification
