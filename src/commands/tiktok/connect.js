@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
-  name: 'connect',
+  name: 'tiktok',
   type: 'slash',
   data: new SlashCommandBuilder()
     .setName('tiktok')
