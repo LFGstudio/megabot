@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
   name: 'guildMemberAdd',
@@ -137,7 +137,7 @@ module.exports = {
             .setDescription(`Welcome <@${member.id}>! We're excited to have you join our community.`)
             .addFields(
               { name: '🚀 Getting Started', value: 'Complete the onboarding process to begin earning!', inline: false },
-              { name: '📋 Next Steps', value: '1. Verify your TikTok account\n2. Complete warm-up process\n3. Start tracking earnings', inline: false }
+              { name: '📋 Next Steps', value: '1. Start your 3-day onboarding journey\n2. Complete account setup and warm-up\n3. Get verified and start earning!', inline: false }
             )
             .setFooter({ text: 'MegaViral Welcome System' })
             .setTimestamp();
@@ -150,7 +150,20 @@ module.exports = {
             }
           }
 
-          await welcomeChannel.send({ embeds: [channelWelcomeEmbed] });
+          // Create action row with start onboarding button
+          const row = new ActionRowBuilder()
+            .addComponents(
+              new ButtonBuilder()
+                .setCustomId('get_started')
+                .setLabel('Start Onboarding')
+                .setEmoji('🚀')
+                .setStyle(ButtonStyle.Primary)
+            );
+
+          await welcomeChannel.send({ 
+            embeds: [channelWelcomeEmbed], 
+            components: [row] 
+          });
           console.log(`📢 Posted welcome message in ${welcomeChannel.name} for: ${member.user.tag}`);
         }
       } catch (channelError) {
