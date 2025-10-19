@@ -184,7 +184,7 @@ async function handleButtonInteraction(interaction, client) {
     if (customId.startsWith('verify_warmup_') || customId.startsWith('reject_warmup_')) {
       console.log(`🔍 Handling warmup verification: ${customId}`);
       const userId = customId.split('_')[2];
-      const action = customId.split('_')[1]; // 'verify' or 'reject'
+      const action = customId.startsWith('verify_warmup_') ? 'verify' : 'reject';
       
       console.log(`🔍 Warmup verification - userId: ${userId}, action: ${action}`);
       try {
