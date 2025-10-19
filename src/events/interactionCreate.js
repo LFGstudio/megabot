@@ -284,6 +284,10 @@ async function handleAccountVerificationModal(interaction, client) {
           deny: [PermissionFlagsBits.ViewChannel]
         },
         {
+          id: client.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
+        },
+        {
           id: interaction.user.id,
           allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
         },
@@ -411,6 +415,10 @@ async function handleTikTokVerificationModal(interaction, client) {
           deny: [PermissionFlagsBits.ViewChannel]
         },
         {
+          id: client.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
+        },
+        {
           id: interaction.user.id,
           allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
         },
@@ -518,6 +526,10 @@ async function handleWarmupVerificationModal(interaction, client) {
         {
           id: interaction.guild.roles.everyone.id,
           deny: [PermissionFlagsBits.ViewChannel]
+        },
+        {
+          id: client.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
         },
         {
           id: interaction.user.id,
@@ -669,6 +681,10 @@ async function handleAddTikTokAccountModal(interaction, client) {
         {
           id: interaction.guild.roles.everyone.id,
           deny: [PermissionFlagsBits.ViewChannel]
+        },
+        {
+          id: client.user.id,
+          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
         },
         {
           id: interaction.user.id,
