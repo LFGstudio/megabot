@@ -891,6 +891,7 @@ async function handleAccountCreationVerification(interaction, client, action, us
       
       // Update user role to warming up
       user.role = 'Warming Up';
+      user.verified = true;
       user.verification_approved_at = new Date();
       await user.save();
       console.log(`✅ User role updated to: ${user.role}`);
