@@ -4,6 +4,8 @@ module.exports = {
   name: 'interactionCreate',
   async execute(interaction, client) {
     try {
+      console.log(`🔍 Interaction received: ${interaction.type} - ${interaction.customId || 'No customId'}`);
+      
       if (interaction.type === InteractionType.ApplicationCommand) {
         // Handle slash commands
         await client.commandHandler.handleSlashCommand(interaction);
@@ -321,14 +323,19 @@ async function handleAccountVerificationModal(interaction, client) {
       .setTimestamp();
 
     // Create action row with verification buttons
+    const verifyButtonId = `verify_account_creation_${interaction.user.id}`;
+    const rejectButtonId = `reject_account_creation_${interaction.user.id}`;
+    
+    console.log(`🔧 Creating buttons - Verify: ${verifyButtonId}, Reject: ${rejectButtonId}`);
+    
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
-          .setCustomId(`verify_account_creation_${interaction.user.id}`)
+          .setCustomId(verifyButtonId)
           .setLabel('✅ Verify Account Creation')
           .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
-          .setCustomId(`reject_account_creation_${interaction.user.id}`)
+          .setCustomId(rejectButtonId)
           .setLabel('❌ Reject Account Creation')
           .setStyle(ButtonStyle.Danger)
       );
