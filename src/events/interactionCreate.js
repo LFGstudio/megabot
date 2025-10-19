@@ -834,6 +834,7 @@ async function handleTestModal(interaction, client) {
 }
 
 async function handleAccountCreationVerification(interaction, client, action, userId) {
+  const User = require('../models/User');
   console.log(`🚀 ENTERING handleAccountCreationVerification function`);
   try {
     console.log(`🔍 Processing account creation verification: action=${action}, userId=${userId}`);
