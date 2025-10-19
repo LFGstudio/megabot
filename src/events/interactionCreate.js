@@ -1000,6 +1000,8 @@ async function handleWarmupVerification(interaction, client, action, userId) {
 }
 
 async function handleAccountVerification(interaction, client, action, userId, username) {
+  const { PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+  
   try {
     // Check if user has admin or moderator permissions
     const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
