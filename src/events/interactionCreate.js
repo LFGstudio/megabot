@@ -97,7 +97,8 @@ async function handleButtonInteraction(interaction, client) {
     // Handle onboarding flow buttons
     const OnboardingHandlers = require('../utils/onboardingHandlers');
     if (customId === 'start_onboarding') {
-      await OnboardingHandlers.handleStartOnboarding(interaction, client);
+      // Route to manual onboarding: create a private channel with user and moderator
+      await OnboardingHandlers.handleGetStarted(interaction, client);
       return;
     } else if (customId === 'submit_account_verification') {
       await OnboardingHandlers.handleSubmitAccountVerification(interaction, client);

@@ -108,6 +108,11 @@ module.exports = {
             .setRequired(false)
         )
     )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('start-here')
+        .setDescription('Create the Start Here channel and post onboarding intro (Admin)')
+    )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction, client) {
@@ -122,12 +127,75 @@ module.exports = {
         await this.createAccountMessage(interaction, client);
       } else if (subcommand === 'warmup-guide') {
         await this.createWarmupMessage(interaction, client);
+      } else if (subcommand === 'start-here') {
+        await this.createStartHereChannel(interaction, client);
       }
 
     } catch (error) {
       console.error('Error in onboarding command:', error);
       await interaction.reply({
         content: '❌ An error occurred while setting up the onboarding flow.',
+        ephemeral: true
+      });
+    }
+  },
+
+  async createStartHereChannel(interaction, client) {
+    try {
+      const { ChannelType, PermissionFlagsBits } = require('discord.js');
+
+      const channelName = 'start-here';
+      // Find existing channel
+      let channel = interaction.guild.channels.cache.find(
+        c => c.type === ChannelType.GuildText && c.name === channelName
+      );
+
+      // Create if not exists
+      if (!channel) {
+        channel = await interaction.guild.channels.create({
+          name: channelName,
+          type: ChannelType.GuildText,
+          topic: 'Start here to begin your MegaViral journey',
+          permissionOverwrites: [
+            { id: interaction.guild.roles.everyone.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory] },
+            { id: client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.AttachFiles] }
+          ]
+        });
+      }
+
+      // Build intro embed
+      const introEmbed = new EmbedBuilder()
+        .setTitle('🚀 Welcome to MegaViral — Start Here')
+        .setDescription('We pay creators to post viral TikTok clips using our content library. We\'ll guide you through a focused 3-day onboarding to get you earning fast.')
+        .addFields(
+          { name: '💼 The Campaign', value: 'Post curated viral clips, track your performance, and get paid based on tier‑1 views.', inline: false },
+          { name: '📅 3‑Day Onboarding', value: 'Day 1: Account setup • Day 2: Algorithm warm‑up • Day 3: Final branding & verification', inline: false },
+          { name: '💸 Goal', value: 'Finish onboarding and start making money as quickly as possible.', inline: false }
+        )
+        .setColor(0x00ff00)
+        .setFooter({ text: 'Click Get Started to open your private onboarding channel' })
+        .setTimestamp();
+
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId('get_started')
+            .setLabel('Get Started')
+            .setEmoji('✅')
+            .setStyle(ButtonStyle.Success)
+        );
+
+      await channel.send({ embeds: [introEmbed], components: [row] });
+
+      await interaction.reply({
+        content: `✅ Posted Start Here in <#${channel.id}>`,
+        ephemeral: true
+      });
+
+    } catch (error) {
+      console.error('Error in createStartHereChannel:', error);
+      await interaction.reply({
+        content: '❌ Failed to create or post in Start Here channel.',
         ephemeral: true
       });
     }

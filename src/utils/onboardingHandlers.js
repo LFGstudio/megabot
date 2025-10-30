@@ -18,11 +18,13 @@ class OnboardingHandlers {
         });
       }
 
-      // Create dedicated onboarding channel for user
+      // Create dedicated onboarding channel for user (idempotent)
       const channelName = `onboarding-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-      
+
       try {
-        const onboardingChannel = await onboardingCategory.guild.channels.create({
+        // Reuse existing channel if already created
+        const existing = onboardingCategory.guild.channels.cache.find(c => c.parentId === onboardingCategory.id && c.name === channelName);
+        const onboardingChannel = existing || await onboardingCategory.guild.channels.create({
           name: channelName,
           type: 0, // Text channel
           parent: onboardingCategory.id,
@@ -51,58 +53,30 @@ class OnboardingHandlers {
           ]
         });
 
-        // Send welcome message to the new channel
-        const getStartedEmbed = new EmbedBuilder()
-          .setTitle('🚀 Your 3-Day Journey to Success')
-          .setDescription(`Welcome ${interaction.user}! You now have your own private onboarding channel.`)
+        // Post manual onboarding welcome message and ping moderators (only if new)
+        if (!existing) {
+          const manualEmbed = new EmbedBuilder()
+          .setTitle('👋 Welcome — Manual Onboarding')
+          .setDescription(`Hi ${interaction.user}, this private channel is for your manual onboarding with our team.`)
           .addFields(
-            {
-              name: '📅 Day 1: Account Setup',
-              value: '• Create your TikTok account\n• Set up your profile\n• Choose your username format',
-              inline: false
-            },
-            {
-              name: '📅 Day 2: Algorithm Warm-up',
-              value: '• Follow the warm-up process\n• Engage with relevant content\n• Build algorithm history',
-              inline: false
-            },
-            {
-              name: '📅 Day 3: Final Branding & Verification',
-              value: '• Complete your branding\n• Submit for final verification\n• Start posting and earning!',
-              inline: false
-            },
-            {
-              name: '🔒 Privacy',
-              value: 'This is your personal onboarding channel. Only you and our team can see your progress.',
-              inline: false
-            }
+            { name: '👥 Participants', value: `You, a moderator <@&${client.config.roles.moderator}> and our team`, inline: false },
+            { name: '✅ Next Step', value: 'Please briefly introduce yourself and share your goals. A moderator will be with you shortly.', inline: false },
+            { name: '🔒 Privacy', value: 'Only you and our staff can see this channel.', inline: false }
           )
           .setColor(0x00ff00)
-          .setFooter({ text: 'Ready to begin? Let\'s start with Day 1!' })
           .setTimestamp();
-
-        const row = new ActionRowBuilder()
-          .addComponents(
-            new ButtonBuilder()
-              .setCustomId('start_day_1')
-              .setLabel('Start Day 1: Account Setup')
-              .setEmoji('📱')
-              .setStyle(ButtonStyle.Primary)
-          );
-
-        // Post the welcome message in the new channel
-        await onboardingChannel.send({ 
-          content: `Welcome ${interaction.user}! 👋`,
-          embeds: [getStartedEmbed], 
-          components: [row] 
-        });
+          await onboardingChannel.send({ 
+            content: `<@${interaction.user.id}> <@&${client.config.roles.moderator}>`,
+            embeds: [manualEmbed]
+          });
+        }
 
         // Confirm to the user in the original channel
         const confirmEmbed = new EmbedBuilder()
-          .setTitle('✅ Onboarding Channel Created!')
-          .setDescription(`Your personal onboarding journey has started!`)
+          .setTitle(existing ? '✅ Onboarding Channel Ready' : '✅ Onboarding Channel Created!')
+          .setDescription(existing ? 'We found your onboarding channel.' : 'Your personal onboarding journey has started!')
           .addFields(
-            { name: '📋 Your Channel', value: `#${channelName}`, inline: true },
+            { name: '📋 Your Channel', value: `<#${onboardingChannel.id}>`, inline: true },
             { name: '🎯 Next Step', value: 'Check your new channel to begin Day 1', inline: true }
           )
           .setColor(0x00ff00)
