@@ -118,6 +118,7 @@ module.exports = {
   async execute(interaction, client) {
     try {
       const subcommand = interaction.options.getSubcommand();
+      console.log(`🔍 Onboarding command received with subcommand: ${subcommand}`);
 
       if (subcommand === 'welcome') {
         await this.createWelcomeMessage(interaction, client);
@@ -128,7 +129,10 @@ module.exports = {
       } else if (subcommand === 'warmup-guide') {
         await this.createWarmupMessage(interaction, client);
       } else if (subcommand === 'start-here') {
+        console.log('🚀 Calling createStartHereChannel');
         await this.createStartHereChannel(interaction, client);
+      } else {
+        console.log(`❌ Unknown subcommand: ${subcommand}`);
       }
 
     } catch (error) {
