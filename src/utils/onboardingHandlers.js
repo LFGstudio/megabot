@@ -752,11 +752,11 @@ class OnboardingHandlers {
       }
 
       // Assign clipper role to approved user
-      const member = await interaction.guild.members.fetch(userId);
+      const approvedMember = await interaction.guild.members.fetch(userId);
       const clipperRole = interaction.guild.roles.cache.get(client.config.roles.clipper);
       
-      if (clipperRole && member) {
-        await member.roles.add(clipperRole);
+      if (clipperRole && approvedMember) {
+        await approvedMember.roles.add(clipperRole);
       }
 
       // Create approval embed
