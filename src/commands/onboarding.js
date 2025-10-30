@@ -112,6 +112,26 @@ module.exports = {
       subcommand
         .setName('start-here')
         .setDescription('Create the Start Here channel and post onboarding intro (Admin)')
+        .addStringOption(option =>
+          option.setName('title')
+            .setDescription('Custom title for start here message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('description')
+            .setDescription('Custom description for start here message')
+            .setRequired(false)
+        )
+        .addStringOption(option =>
+          option.setName('button-text')
+            .setDescription('Custom button text')
+            .setRequired(false)
+        )
+        .addAttachmentOption(option =>
+          option.setName('image')
+            .setDescription('Start here image to display')
+            .setRequired(false)
+        )
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -149,6 +169,11 @@ module.exports = {
       const { ChannelType, PermissionFlagsBits } = require('discord.js');
 
       const channelName = 'start-here';
+      const imageAttachment = interaction.options.getAttachment('image');
+      const customTitle = interaction.options.getString('title');
+      const customDescription = interaction.options.getString('description');
+      const customButtonText = interaction.options.getString('button-text');
+
       // Find existing channel
       let channel = interaction.guild.channels.cache.find(
         c => c.type === ChannelType.GuildText && c.name === channelName
@@ -167,24 +192,41 @@ module.exports = {
         });
       }
 
-      // Build intro embed
+      // Build intro embed with improved copy
       const introEmbed = new EmbedBuilder()
-        .setTitle('🚀 Welcome to MegaViral — Start Here')
-        .setDescription('We pay creators to post viral TikTok clips using our content library. We\'ll guide you through a focused 3-day onboarding to get you earning fast.')
+        .setTitle(customTitle || '🚀 Welcome to MegaViral — Start Here')
+        .setDescription(customDescription || '**Earn money by posting viral TikTok clips!**\n\nWe provide you with professionally curated, viral-worthy content. Post it on TikTok and get paid based on your views from tier‑1 countries.\n\nOur quick 3‑day onboarding gets you set up and earning fast.')
         .addFields(
-          { name: '💼 The Campaign', value: 'Post curated viral clips, track your performance, and get paid based on tier‑1 views.', inline: false },
-          { name: '📅 3‑Day Onboarding', value: 'Day 1: Account setup • Day 2: Algorithm warm‑up • Day 3: Final branding & verification', inline: false },
-          { name: '💸 Goal', value: 'Finish onboarding and start making money as quickly as possible.', inline: false }
+          { 
+            name: '💼 What You\'ll Get', 
+            value: '• High‑quality viral content library\n• Automated payout tracking & analytics\n• $15 per 100K tier‑1 views\n• Monthly payouts via PayPal or Wise', 
+            inline: false 
+          },
+          { 
+            name: '📅 3‑Day Onboarding Process', 
+            value: '**Day 1:** Create TikTok account & set up profile\n**Day 2:** Warm up algorithm with engaging content\n**Day 3:** Final verification & start earning!', 
+            inline: false 
+          },
+          { 
+            name: '💸 How Much You Earn', 
+            value: 'Tier‑1 views (US, UK, CA, AU, NZ) = **$15 per 100K views**\n\nExample: 500K tier‑1 views = $75 payout!', 
+            inline: false 
+          }
         )
         .setColor(0x00ff00)
-        .setFooter({ text: 'Click Get Started to open your private onboarding channel' })
+        .setFooter({ text: 'Click "Get Started" below to begin your journey!' })
         .setTimestamp();
+
+      // Add image if provided
+      if (imageAttachment && imageAttachment.contentType?.startsWith('image/')) {
+        introEmbed.setImage(imageAttachment.url);
+      }
 
       const row = new ActionRowBuilder()
         .addComponents(
           new ButtonBuilder()
             .setCustomId('get_started')
-            .setLabel('Get Started')
+            .setLabel(customButtonText || 'Get Started')
             .setEmoji('✅')
             .setStyle(ButtonStyle.Success)
         );
@@ -192,7 +234,7 @@ module.exports = {
       await channel.send({ embeds: [introEmbed], components: [row] });
 
       await interaction.reply({
-        content: `✅ Posted Start Here in <#${channel.id}>`,
+        content: `✅ Posted Start Here message in <#${channel.id}>`,
         ephemeral: true
       });
 
