@@ -6,10 +6,13 @@ class OnboardingHandlers {
 
   async handleGetStarted(interaction, client) {
     try {
-      // Find onboarding category
-      let onboardingCategory = client.channels.cache.find(
+      console.log('🔍 Starting handleGetStarted for user:', interaction.user.tag);
+      
+      // Find onboarding category - use interaction.guild instead of client.channels
+      let onboardingCategory = interaction.guild.channels.cache.find(
         channel => channel.name.toLowerCase().includes('onboarding') && channel.type === 4
       );
+      console.log('🔍 Onboarding category found:', onboardingCategory ? onboardingCategory.name : 'none');
 
       // If no onboarding category found, try to use the guild's first category or create one
       if (!onboardingCategory) {
@@ -73,6 +76,8 @@ class OnboardingHandlers {
           });
         }
         
+        console.log('🔧 Creating onboarding channel:', channelName, 'in category:', onboardingCategory.name);
+        
         const onboardingChannel = existing || await interaction.guild.channels.create({
           name: channelName,
           type: 0, // Text channel
@@ -80,6 +85,8 @@ class OnboardingHandlers {
           topic: `Personal onboarding journey for ${interaction.user.tag}`,
           permissionOverwrites: permissionOverwrites
         });
+        
+        console.log('✅ Onboarding channel created/found:', onboardingChannel.id);
 
         // Post manual onboarding welcome message and ping moderators (only if new)
         if (!existing) {
@@ -129,6 +136,7 @@ class OnboardingHandlers {
 
       } catch (channelError) {
         console.error('Error creating onboarding channel:', channelError);
+        console.error('Channel error stack:', channelError.stack);
         return await interaction.reply({
           content: '❌ Failed to create onboarding channel. Please contact an administrator.',
           ephemeral: true
@@ -137,6 +145,7 @@ class OnboardingHandlers {
 
     } catch (error) {
       console.error('Error in handleGetStarted:', error);
+      console.error('Error stack:', error.stack);
       await interaction.reply({
         content: '❌ An error occurred while starting your journey.',
         ephemeral: true
