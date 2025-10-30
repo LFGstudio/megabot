@@ -24,49 +24,72 @@ class OnboardingHandlers {
       try {
         // Reuse existing channel if already created
         const existing = onboardingCategory.guild.channels.cache.find(c => c.parentId === onboardingCategory.id && c.name === channelName);
+        
+        // Build permission overwrites dynamically based on what roles exist
+        const permissionOverwrites = [
+          {
+            id: interaction.guild.roles.everyone.id,
+            deny: ['ViewChannel']
+          },
+          {
+            id: client.user.id,
+            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'EmbedLinks', 'AttachFiles']
+          },
+          {
+            id: interaction.user.id,
+            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+          }
+        ];
+        
+        // Only add moderator role if it exists in config
+        if (client.config.roles.moderator) {
+          permissionOverwrites.push({
+            id: client.config.roles.moderator,
+            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages']
+          });
+        }
+        
+        // Only add admin role if it exists in config
+        if (client.config.roles.admin) {
+          permissionOverwrites.push({
+            id: client.config.roles.admin,
+            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages', 'ManageChannels']
+          });
+        }
+        
         const onboardingChannel = existing || await onboardingCategory.guild.channels.create({
           name: channelName,
           type: 0, // Text channel
           parent: onboardingCategory.id,
           topic: `Personal onboarding journey for ${interaction.user.tag}`,
-          permissionOverwrites: [
-            {
-              id: interaction.guild.roles.everyone.id,
-              deny: ['ViewChannel']
-            },
-            {
-              id: client.user.id,
-              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'EmbedLinks', 'AttachFiles']
-            },
-            {
-              id: interaction.user.id,
-              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-            },
-            {
-              id: client.config.roles.moderator,
-              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages']
-            },
-            {
-              id: client.config.roles.admin,
-              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages', 'ManageChannels']
-            }
-          ]
+          permissionOverwrites: permissionOverwrites
         });
 
         // Post manual onboarding welcome message and ping moderators (only if new)
         if (!existing) {
+          // Build mention string and participant text based on available roles
+          const hasModerator = client.config.roles.moderator;
+          const mentionString = hasModerator 
+            ? `<@${interaction.user.id}> <@&${client.config.roles.moderator}>`
+            : `<@${interaction.user.id}>`;
+          
+          const participantsText = hasModerator
+            ? `You, a moderator <@&${client.config.roles.moderator}> and our team`
+            : `You and our team`;
+          
           const manualEmbed = new EmbedBuilder()
           .setTitle('👋 Welcome — Manual Onboarding')
           .setDescription(`Hi ${interaction.user}, this private channel is for your manual onboarding with our team.`)
           .addFields(
-            { name: '👥 Participants', value: `You, a moderator <@&${client.config.roles.moderator}> and our team`, inline: false },
+            { name: '👥 Participants', value: participantsText, inline: false },
             { name: '✅ Next Step', value: 'Please briefly introduce yourself and share your goals. A moderator will be with you shortly.', inline: false },
             { name: '🔒 Privacy', value: 'Only you and our staff can see this channel.', inline: false }
           )
           .setColor(0x00ff00)
           .setTimestamp();
+          
           await onboardingChannel.send({ 
-            content: `<@${interaction.user.id}> <@&${client.config.roles.moderator}>`,
+            content: mentionString,
             embeds: [manualEmbed]
           });
         }
