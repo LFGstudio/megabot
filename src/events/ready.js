@@ -28,6 +28,7 @@ module.exports = {
       const commands = client.commandHandler.getSlashCommands().map(command => command.data.toJSON());
 
       console.log(`🔄 Started refreshing ${commands.length} application (/) commands.`);
+      console.log('📋 Commands to register:', commands.map(c => c.name + (c.options?.map(o => ' ' + o.name) || []).join(' ')).join(', '));
 
       // Register commands globally
       const data = await rest.put(
@@ -36,6 +37,7 @@ module.exports = {
       );
 
       console.log(`✅ Successfully reloaded ${data.length} application (/) commands.`);
+      console.log('📋 Registered commands:', data.map(c => c.name + (c.options?.map(o => ' ' + o.name) || []).join(' ')).join(', '));
     } catch (error) {
       console.error('❌ Error registering slash commands:', error);
     }
