@@ -7,15 +7,31 @@ class OnboardingHandlers {
   async handleGetStarted(interaction, client) {
     try {
       // Find onboarding category
-      const onboardingCategory = client.channels.cache.find(
+      let onboardingCategory = client.channels.cache.find(
         channel => channel.name.toLowerCase().includes('onboarding') && channel.type === 4
       );
 
+      // If no onboarding category found, try to use the guild's first category or create one
       if (!onboardingCategory) {
-        return await interaction.reply({
-          content: '❌ Onboarding category not found. Please contact an administrator.',
-          ephemeral: true
-        });
+        // Try to find any category
+        onboardingCategory = interaction.guild.channels.cache.find(channel => channel.type === 4);
+        
+        if (!onboardingCategory) {
+          // Create onboarding category if none exists
+          try {
+            onboardingCategory = await interaction.guild.channels.create({
+              name: 'Onboarding',
+              type: 4 // Category
+            });
+            console.log(`✅ Created onboarding category: ${onboardingCategory.id}`);
+          } catch (createError) {
+            console.error('Error creating onboarding category:', createError);
+            return await interaction.reply({
+              content: '❌ Could not create onboarding category. Please contact an administrator.',
+              ephemeral: true
+            });
+          }
+        }
       }
 
       // Create dedicated onboarding channel for user (idempotent)
