@@ -39,7 +39,7 @@ class OnboardingHandlers {
 
       try {
         // Reuse existing channel if already created
-        const existing = onboardingCategory.guild.channels.cache.find(c => c.parentId === onboardingCategory.id && c.name === channelName);
+        const existing = interaction.guild.channels.cache.find(c => c.parentId === onboardingCategory.id && c.name === channelName);
         
         // Build permission overwrites dynamically based on what roles exist
         const permissionOverwrites = [
@@ -73,7 +73,7 @@ class OnboardingHandlers {
           });
         }
         
-        const onboardingChannel = existing || await onboardingCategory.guild.channels.create({
+        const onboardingChannel = existing || await interaction.guild.channels.create({
           name: channelName,
           type: 0, // Text channel
           parent: onboardingCategory.id,
