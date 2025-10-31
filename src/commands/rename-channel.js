@@ -26,6 +26,9 @@ module.exports = {
       const targetChannel = interaction.options.getChannel('channel');
       const newName = interaction.options.getString('new-name');
 
+      // Store old name before renaming
+      const oldName = targetChannel.name;
+
       // Check if user has permission to manage the channel
       if (!targetChannel.permissionsFor(interaction.member).has(PermissionFlagsBits.ManageChannels)) {
         return await interaction.reply({
@@ -41,7 +44,7 @@ module.exports = {
         .setTitle('✅ Channel Renamed')
         .setDescription(`Successfully renamed channel to: **${newName}**`)
         .addFields(
-          { name: '📋 Old Name', value: targetChannel.name, inline: true },
+          { name: '📋 Old Name', value: oldName, inline: true },
           { name: '📝 New Name', value: newName, inline: true }
         )
         .setColor(0x00ff00)
@@ -55,6 +58,7 @@ module.exports = {
 
     } catch (error) {
       console.error('Error renaming channel:', error);
+      console.error('Error stack:', error.stack);
       await interaction.reply({
         content: `❌ Failed to rename channel: ${error.message}`,
         ephemeral: true
