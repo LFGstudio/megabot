@@ -52,15 +52,25 @@ class OnboardingHandlers {
         const permissionOverwrites = [
           {
             id: interaction.guild.roles.everyone.id,
-            deny: ['ViewChannel']
+            deny: [PermissionFlagsBits.ViewChannel]
           },
           {
             id: client.user.id,
-            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'EmbedLinks', 'AttachFiles']
+            allow: [
+              PermissionFlagsBits.ViewChannel, 
+              PermissionFlagsBits.SendMessages, 
+              PermissionFlagsBits.ReadMessageHistory, 
+              PermissionFlagsBits.EmbedLinks, 
+              PermissionFlagsBits.AttachFiles
+            ]
           },
           {
             id: interaction.user.id,
-            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+            allow: [
+              PermissionFlagsBits.ViewChannel, 
+              PermissionFlagsBits.SendMessages, 
+              PermissionFlagsBits.ReadMessageHistory
+            ]
           }
         ];
         
@@ -68,7 +78,12 @@ class OnboardingHandlers {
         if (client.config.roles.moderator) {
           permissionOverwrites.push({
             id: client.config.roles.moderator,
-            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages']
+            allow: [
+              PermissionFlagsBits.ViewChannel, 
+              PermissionFlagsBits.SendMessages, 
+              PermissionFlagsBits.ReadMessageHistory, 
+              PermissionFlagsBits.ManageMessages
+            ]
           });
         }
         
@@ -76,7 +91,13 @@ class OnboardingHandlers {
         if (client.config.roles.admin) {
           permissionOverwrites.push({
             id: client.config.roles.admin,
-            allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages', 'ManageChannels']
+            allow: [
+              PermissionFlagsBits.ViewChannel, 
+              PermissionFlagsBits.SendMessages, 
+              PermissionFlagsBits.ReadMessageHistory, 
+              PermissionFlagsBits.ManageMessages, 
+              PermissionFlagsBits.ManageChannels
+            ]
           });
         }
         
