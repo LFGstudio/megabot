@@ -10,7 +10,7 @@ class OnboardingHandlers {
       
       // Find ALL onboarding categories
       const allOnboardingCategories = interaction.guild.channels.cache.filter(
-        channel => channel.name.toLowerCase().includes('onboarding') && channel.type === 4
+        channel => channel.name.toLowerCase().includes('onboarding') && channel.type === ChannelType.GuildCategory
       );
       console.log('🔍 Found onboarding categories:', allOnboardingCategories.map(c => c.name).join(', '));
       
@@ -20,7 +20,7 @@ class OnboardingHandlers {
       
       for (const category of allOnboardingCategories) {
         const channelCount = interaction.guild.channels.cache.filter(
-          c => c.parentId === category.id && c.type === 0
+          c => c.parentId === category.id && c.type === ChannelType.GuildText
         ).size;
         console.log(`🔍 Category ${category.name} has ${channelCount} channels`);
         
@@ -35,14 +35,14 @@ class OnboardingHandlers {
       // If no onboarding category found, try to use the guild's first category or create one
       if (!onboardingCategory) {
         // Try to find any category
-        onboardingCategory = interaction.guild.channels.cache.find(channel => channel.type === 4);
+        onboardingCategory = interaction.guild.channels.cache.find(channel => channel.type === ChannelType.GuildCategory);
         
         if (!onboardingCategory) {
           // Create onboarding category if none exists
           try {
             onboardingCategory = await interaction.guild.channels.create({
               name: 'Onboarding',
-              type: 4 // Category
+              type: ChannelType.GuildCategory
             });
             console.log(`✅ Created onboarding category: ${onboardingCategory.id}`);
           } catch (createError) {
@@ -119,13 +119,13 @@ class OnboardingHandlers {
           });
         }
         
-        console.log('🔧 Creating onboarding channel:', channelName, 'in category:', onboardingCategory.name);
-        console.log('🔧 Permission overwrites:', JSON.stringify(permissionOverwrites, null, 2));
+        console.log('🔧 Creating onboarding channel:', channelName, 'in category:', onboardingCategory?.name);
+        console.log('🔧 Permission overwrites count:', permissionOverwrites.length);
         console.log('🔧 Existing channel found:', !!existing);
         
         const onboardingChannel = existing || await interaction.guild.channels.create({
           name: channelName,
-          type: 0, // Text channel
+          type: ChannelType.GuildText,
           parent: onboardingCategory.id,
           topic: `Personal onboarding journey for ${interaction.user.tag}`,
           permissionOverwrites: permissionOverwrites
