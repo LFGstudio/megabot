@@ -41,8 +41,12 @@ class OnboardingHandlers {
       const channelName = `onboarding-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
 
       try {
-        // Reuse existing channel if already created
-        const existing = interaction.guild.channels.cache.find(c => c.parentId === onboardingCategory.id && c.name === channelName);
+        // Reuse existing channel if already created - check by both name AND user permissions
+        const existing = interaction.guild.channels.cache.find(c => 
+          c.parentId === onboardingCategory.id && 
+          c.name === channelName &&
+          c.permissionsFor(interaction.user.id)?.has('ViewChannel')
+        );
         
         // Build permission overwrites dynamically based on what roles exist
         const permissionOverwrites = [
@@ -137,8 +141,17 @@ class OnboardingHandlers {
       } catch (channelError) {
         console.error('Error creating onboarding channel:', channelError);
         console.error('Channel error stack:', channelError.stack);
+        
+        // Check for specific Discord API errors
+        let errorMessage = '❌ Failed to create onboarding channel.';
+        if (channelError.code === 50035) {
+          errorMessage = '❌ Too many channels exist. Please contact an administrator to clean up old channels.';
+        } else if (channelError.message?.includes('Missing Access')) {
+          errorMessage = '❌ Bot lacks permission to create channels. Please contact an administrator.';
+        }
+        
         return await interaction.reply({
-          content: '❌ Failed to create onboarding channel. Please contact an administrator.',
+          content: errorMessage,
           ephemeral: true
         });
       }
