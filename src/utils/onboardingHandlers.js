@@ -81,6 +81,8 @@ class OnboardingHandlers {
         }
         
         console.log('🔧 Creating onboarding channel:', channelName, 'in category:', onboardingCategory.name);
+        console.log('🔧 Permission overwrites:', JSON.stringify(permissionOverwrites, null, 2));
+        console.log('🔧 Existing channel found:', !!existing);
         
         const onboardingChannel = existing || await interaction.guild.channels.create({
           name: channelName,
