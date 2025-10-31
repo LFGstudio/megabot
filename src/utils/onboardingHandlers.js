@@ -8,11 +8,29 @@ class OnboardingHandlers {
     try {
       console.log('🔍 Starting handleGetStarted for user:', interaction.user.tag);
       
-      // Find onboarding category - use interaction.guild instead of client.channels
-      let onboardingCategory = interaction.guild.channels.cache.find(
+      // Find ALL onboarding categories
+      const allOnboardingCategories = interaction.guild.channels.cache.filter(
         channel => channel.name.toLowerCase().includes('onboarding') && channel.type === 4
       );
-      console.log('🔍 Onboarding category found:', onboardingCategory ? onboardingCategory.name : 'none');
+      console.log('🔍 Found onboarding categories:', allOnboardingCategories.map(c => c.name).join(', '));
+      
+      // Find the onboarding category with the least channels (or most recent)
+      let onboardingCategory = null;
+      let minChannelCount = Infinity;
+      
+      for (const category of allOnboardingCategories) {
+        const channelCount = interaction.guild.channels.cache.filter(
+          c => c.parentId === category.id && c.type === 0
+        ).size;
+        console.log(`🔍 Category ${category.name} has ${channelCount} channels`);
+        
+        if (channelCount < minChannelCount) {
+          minChannelCount = channelCount;
+          onboardingCategory = category;
+        }
+      }
+      
+      console.log('🔍 Selected onboarding category:', onboardingCategory ? onboardingCategory.name : 'none');
 
       // If no onboarding category found, try to use the guild's first category or create one
       if (!onboardingCategory) {
