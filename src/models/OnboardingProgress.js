@@ -35,6 +35,7 @@ const onboardingProgressSchema = new mongoose.Schema({
         title: String,
         description: String,
         completed: { type: Boolean, default: false },
+        started_at: { type: Date, default: null },
         completed_at: { type: Date, default: null },
         user_response: String
       }]
@@ -47,6 +48,7 @@ const onboardingProgressSchema = new mongoose.Schema({
         title: String,
         description: String,
         completed: { type: Boolean, default: false },
+        started_at: { type: Date, default: null },
         completed_at: { type: Date, default: null },
         user_response: String
       }]
@@ -59,6 +61,7 @@ const onboardingProgressSchema = new mongoose.Schema({
         title: String,
         description: String,
         completed: { type: Boolean, default: false },
+        started_at: { type: Date, default: null },
         completed_at: { type: Date, default: null },
         user_response: String
       }]
@@ -71,6 +74,7 @@ const onboardingProgressSchema = new mongoose.Schema({
         title: String,
         description: String,
         completed: { type: Boolean, default: false },
+        started_at: { type: Date, default: null },
         completed_at: { type: Date, default: null },
         user_response: String
       }]
@@ -83,6 +87,7 @@ const onboardingProgressSchema = new mongoose.Schema({
         title: String,
         description: String,
         completed: { type: Boolean, default: false },
+        started_at: { type: Date, default: null },
         completed_at: { type: Date, default: null },
         user_response: String
       }]

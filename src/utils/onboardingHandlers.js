@@ -51,10 +51,10 @@ class OnboardingHandlers {
             console.log(`✅ Created onboarding category: ${onboardingCategory.id}`);
           } catch (createError) {
             console.error('Error creating onboarding category:', createError);
-            return await interaction.reply({
-              content: '❌ Could not create onboarding category. Please contact an administrator.',
-              ephemeral: true
-            });
+        return await interaction.reply({
+          content: 'Could not create onboarding category. Please contact an administrator.',
+          ephemeral: true
+        });
           }
         }
       }
@@ -198,8 +198,8 @@ class OnboardingHandlers {
 
         // Confirm to the user in the original channel
         const confirmEmbed = new EmbedBuilder()
-          .setTitle(existing ? '✅ Onboarding Channel Ready' : '✅ Onboarding Channel Created!')
-          .setDescription(existing ? 'We found your onboarding channel.' : 'Your personal onboarding journey has started!')
+          .setTitle(existing ? 'Onboarding Channel Ready' : 'Onboarding Channel Created')
+          .setDescription(existing ? 'We found your onboarding channel.' : 'Your personal onboarding journey has started.')
           .addFields(
             { name: '📋 Your Channel', value: `<#${onboardingChannel.id}>`, inline: true },
             { name: '🎯 Next Step', value: 'Check your new channel to begin Day 1', inline: true }
@@ -1294,6 +1294,40 @@ class OnboardingHandlers {
         // Try to identify which task
         for (const task of dayTasks.tasks) {
           if (!task.completed && lowerContent.includes(task.title.toLowerCase().substring(0, 10))) {
+            // Get full task definition to check for timing requirements
+            const { getTasksForDay } = require('./onboardingTasks');
+            const dayTaskDef = getTasksForDay(onboardingProgress.current_day);
+            const fullTaskDef = dayTaskDef.tasks.find(t => t.id === task.id);
+            
+            // Validate timing if task has min_duration_minutes
+            if (fullTaskDef && fullTaskDef.min_duration_minutes && task.started_at) {
+              const startTime = new Date(task.started_at);
+              const now = new Date();
+              const elapsedMinutes = (now - startTime) / (1000 * 60);
+              
+              if (elapsedMinutes < fullTaskDef.min_duration_minutes) {
+                const remaining = Math.ceil(fullTaskDef.min_duration_minutes - elapsedMinutes);
+                await discordMessage.reply(
+                  `This engagement session requires a minimum of ${fullTaskDef.min_duration_minutes} minutes. Please continue for ${remaining} more minute(s) before completing.`
+                );
+                return; // Don't mark as complete
+              }
+            } else if (fullTaskDef && fullTaskDef.min_duration_minutes && !task.started_at) {
+              // Task just started - record start time
+              task.started_at = new Date();
+              await onboardingProgress.save();
+              const { getTasksForDay } = require('./onboardingTasks');
+              const dayTaskDef2 = getTasksForDay(onboardingProgress.current_day);
+              const fullTaskDef2 = dayTaskDef2.tasks.find(t => t.id === task.id);
+              
+              if (fullTaskDef2 && fullTaskDef2.reason) {
+                await discordMessage.reply(
+                  `Task started. ${fullTaskDef2.reason}. Please spend at least ${fullTaskDef2.min_duration_minutes} minutes on this engagement.`
+                );
+              }
+              return; // Don't mark as complete yet
+            }
+            
             // Mark task as completed
             await onboardingProgress.completeTask(onboardingProgress.current_day, task.id, messageContent);
             
@@ -1305,18 +1339,18 @@ class OnboardingHandlers {
               const isLastDay = currentDay === 5;
               
               const completionEmbed = new EmbedBuilder()
-                .setTitle('🎉 Day Complete!')
-                .setDescription(`Congratulations! You've completed all tasks for Day ${currentDay}!`)
+                .setTitle('Day Complete')
+                .setDescription(`Congratulations! You have completed all tasks for Day ${currentDay}.`)
                 .setColor(0x00ff00)
                 .setTimestamp();
               
               if (isLastDay) {
                 completionEmbed.addFields(
-                  { name: '🎊 Congratulations!', value: 'You\'ve completed the entire onboarding process! A moderator will verify your completion and grant you access.', inline: false }
+                  { name: 'Congratulations', value: 'You have completed the entire onboarding process. A moderator will verify your completion and grant you access.', inline: false }
                 );
               } else {
                 completionEmbed.addFields(
-                  { name: '✅ Next Steps', value: `Great job! You're now ready for Day ${currentDay + 1}. I'll set that up for you now!`, inline: false }
+                  { name: 'Next Steps', value: `Great job! You are now ready for Day ${currentDay + 1}. I will set that up for you now.`, inline: false }
                 );
               }
               

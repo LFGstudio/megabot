@@ -20,7 +20,9 @@ const TASKS_BY_DAY = {
         title: 'Complete Initial Engagement Session',
         description: 'Complete one engagement session: 30 likes, 5 comments, 15 follows in niches: tiktok growth tips, coach tips, girls support girls',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        reason: 'This initial engagement warms up your account for better reach when you start posting'
       },
       {
         id: 'language_timezone',
@@ -54,14 +56,20 @@ const TASKS_BY_DAY = {
         title: 'Morning Engagement Session',
         description: 'Complete morning engagement session (15 minutes): 30 likes, 5 comments, 15 follows in niches',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '10:00',
+        reason: 'Engaging before posting warms up your account and improves reach'
       },
       {
         id: 'evening_engagement',
         title: 'Evening Engagement Session',
         description: 'Complete evening engagement session (15 minutes): 30 likes, 5 comments, 15 follows in niches',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '20:00',
+        reason: 'Evening engagement keeps your account active and algorithm-friendly'
       }
     ]
   },
@@ -74,7 +82,10 @@ const TASKS_BY_DAY = {
         title: 'Morning Engagement Session',
         description: 'Complete morning engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '10:00',
+        reason: 'Engaging before posting warms up your account and improves reach'
       },
       {
         id: 'create_first_post',
@@ -88,7 +99,10 @@ const TASKS_BY_DAY = {
         title: 'Evening Engagement Session',
         description: 'Complete evening engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '20:00',
+        reason: 'Evening engagement keeps your account active and algorithm-friendly'
       },
       {
         id: 'reply_to_comments',
@@ -108,7 +122,10 @@ const TASKS_BY_DAY = {
         title: 'Morning Engagement Session',
         description: 'Complete morning engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '10:00',
+        reason: 'Engaging before posting warms up your account and improves reach'
       },
       {
         id: 'create_post_day4',
@@ -122,7 +139,10 @@ const TASKS_BY_DAY = {
         title: 'Evening Engagement Session',
         description: 'Complete evening engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '20:00',
+        reason: 'Evening engagement keeps your account active and algorithm-friendly'
       }
     ]
   },
@@ -135,7 +155,10 @@ const TASKS_BY_DAY = {
         title: 'Morning Engagement Session',
         description: 'Complete morning engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '10:00',
+        reason: 'Engaging before posting warms up your account and improves reach'
       },
       {
         id: 'create_post_day5',
@@ -149,7 +172,10 @@ const TASKS_BY_DAY = {
         title: 'Evening Engagement Session',
         description: 'Complete evening engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
-        required: true
+        required: true,
+        min_duration_minutes: 15,
+        scheduled_time: '20:00',
+        reason: 'Evening engagement keeps your account active and algorithm-friendly'
       },
       {
         id: 'complete_onboarding',
@@ -195,6 +221,7 @@ function initializeTasks() {
         command: task.command || null,
         required: task.required || false,
         completed: false,
+        started_at: null,
         completed_at: null,
         user_response: null
       }))
