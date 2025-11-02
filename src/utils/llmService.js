@@ -26,7 +26,38 @@ class LLMService {
       return true;
     }
     
-    // Try to find a working model
+    try {
+      // Try to list available models first
+      const models = await this.genAI.listModels();
+      const availableModelNames = models.models.map(m => m.name);
+      console.log('📋 Available Gemini models:', availableModelNames);
+      
+      // Extract just the model name (e.g., "models/gemini-1.5-flash" -> "gemini-1.5-flash")
+      const preferredModelNames = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.5'];
+      
+      for (const modelName of preferredModelNames) {
+        const fullModelName = availableModelNames.find(m => m.includes(modelName));
+        if (fullModelName) {
+          this.model = this.genAI.getGenerativeModel({ model: modelName });
+          this.enabled = true;
+          console.log(`✅ Using Gemini model: ${modelName}`);
+          return true;
+        }
+      }
+      
+      // If no preferred model, use first available
+      if (availableModelNames.length > 0) {
+        const firstModel = availableModelNames[0];
+        this.model = this.genAI.getGenerativeModel({ model: firstModel });
+        this.enabled = true;
+        console.log(`✅ Using first available model: ${firstModel}`);
+        return true;
+      }
+    } catch (listError) {
+      console.log('⚠️ Could not list models, trying direct initialization');
+    }
+    
+    // Fallback: try common model names
     for (const modelName of this.modelsToTry) {
       try {
         this.model = this.genAI.getGenerativeModel({ model: modelName });
