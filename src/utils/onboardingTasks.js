@@ -1,140 +1,160 @@
 /**
- * 5-Day Onboarding Task Definitions
- * Each day has specific tasks that users must complete
+ * 5-Day TikTok Poster Onboarding Task Definitions
+ * Each day has specific tasks that users must complete based on boardingspecsai
  */
 
 const TASKS_BY_DAY = {
   1: {
-    day_title: "Welcome & Account Setup",
-    day_description: "Get started with your MegaViral journey! Today we'll set up your account and get familiar with the platform.",
+    day_title: "Account Creation & Initial Engagement",
+    day_description: "Create your TikTok account and complete your first engagement session.",
     tasks: [
       {
-        id: 'welcome_intro',
-        title: 'Introduce Yourself',
-        description: 'Tell us a bit about yourself - your name, where you\'re from, and what brought you to MegaViral.',
+        id: 'create_account',
+        title: 'Create TikTok Account',
+        description: 'Create your TikTok account. Use format: girl name + viraltips/viralgrowth/megaviral. Examples: sophia.viraltips, mia.viralgrowth, ava.megaviral',
+        type: 'upload',
+        required: true
+      },
+      {
+        id: 'initial_engagement',
+        title: 'Complete Initial Engagement Session',
+        description: 'Complete one engagement session: 30 likes, 5 comments, 15 follows in niches: tiktok growth tips, coach tips, girls support girls',
+        type: 'confirmation',
+        required: true
+      },
+      {
+        id: 'language_timezone',
+        title: 'Set Language & Timezone',
+        description: 'Choose your preferred language (English or Spanish) and provide your timezone (e.g., America/New_York, Europe/Madrid)',
         type: 'text_response',
-        required: true
-      },
-      {
-        id: 'read_rules',
-        title: 'Read Community Guidelines',
-        description: 'Review the server rules and guidelines in the #rules channel. Confirm you\'ve read them.',
-        type: 'confirmation',
-        required: true
-      },
-      {
-        id: 'setup_profile',
-        title: 'Complete Your Profile',
-        description: 'Set up your Discord profile with a clear username and profile picture. Make sure it\'s professional.',
-        type: 'confirmation',
         required: true
       }
     ]
   },
   2: {
-    day_title: "TikTok Account Connection",
-    day_description: "Connect your TikTok account and start your content creation journey!",
+    day_title: "Profile Setup & Engagement",
+    day_description: "Set up your profile picture and bio, then complete two 15-minute engagement sessions.",
     tasks: [
       {
-        id: 'connect_tiktok',
-        title: 'Connect Your TikTok Account',
-        description: 'Use the /tiktok connect command to link your TikTok account to your MegaViral profile.',
-        type: 'command',
-        command: '/tiktok connect',
-        required: true
-      },
-      {
-        id: 'verify_account',
-        title: 'Verify Account Creation',
-        description: 'Submit your TikTok account for verification in the "create an account" channel. Upload proof of account creation.',
+        id: 'set_profile_picture',
+        title: 'Set Profile Picture',
+        description: 'Upload a cute, girly aesthetic photo from Pinterest as your profile picture',
         type: 'upload',
         required: true
       },
       {
-        id: 'understand_platform',
-        title: 'Learn About MegaViral',
-        description: 'Read about how MegaViral works, our clipping system, and how you can earn. Ask any questions you have!',
-        type: 'text_response',
+        id: 'set_bio',
+        title: 'Set Bio',
+        description: 'Set your bio to: "Helping girls grow & stay motivated 💕\nFollow for daily inspo ✨\nApp you are looking for \'MegaViral ✨\'"',
+        type: 'confirmation',
+        required: true
+      },
+      {
+        id: 'morning_engagement',
+        title: 'Morning Engagement Session',
+        description: 'Complete morning engagement session (15 minutes): 30 likes, 5 comments, 15 follows in niches',
+        type: 'confirmation',
+        required: true
+      },
+      {
+        id: 'evening_engagement',
+        title: 'Evening Engagement Session',
+        description: 'Complete evening engagement session (15 minutes): 30 likes, 5 comments, 15 follows in niches',
+        type: 'confirmation',
         required: true
       }
     ]
   },
   3: {
-    day_title: "Account Warm-Up Phase",
-    day_description: "Learn the importance of warming up your TikTok account before starting to clip.",
+    day_title: "First Post & Engagement",
+    day_description: "Publish your first slideshow post and continue engagement sessions.",
     tasks: [
       {
-        id: 'learn_warmup',
-        title: 'Understand Account Warm-Up',
-        description: 'Learn why warming up your TikTok account is crucial for success. Review the warm-up guidelines.',
-        type: 'text_response',
-        required: true
-      },
-      {
-        id: 'start_warmup',
-        title: 'Begin Account Warm-Up',
-        description: 'Start warming up your TikTok account by posting original content for at least 3 days.',
+        id: 'morning_engagement_day3',
+        title: 'Morning Engagement Session',
+        description: 'Complete morning engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
         required: true
       },
       {
-        id: 'track_progress',
-        title: 'Track Your Progress',
-        description: 'Keep track of your warm-up content and engagement metrics.',
-        type: 'text_response',
+        id: 'create_first_post',
+        title: 'Create First Slideshow Post',
+        description: 'Publish your first slideshow post with 6 slides, Pinterest images, provided text format. Include hashtags: #girlssupportgirls #tiktokgrowth #howtogoviral',
+        type: 'upload',
+        required: true
+      },
+      {
+        id: 'evening_engagement_day3',
+        title: 'Evening Engagement Session',
+        description: 'Complete evening engagement session: 30 likes, 5 comments, 15 follows',
+        type: 'confirmation',
+        required: true
+      },
+      {
+        id: 'reply_to_comments',
+        title: 'Reply to Comments',
+        description: 'Reply to comments on your post following MegaViral guidelines. Include "MegaViral app" in ≥90% of replies',
+        type: 'confirmation',
         required: true
       }
     ]
   },
   4: {
-    day_title: "Content Creation Basics",
-    day_description: "Master the fundamentals of creating engaging clips for TikTok.",
+    day_title: "Daily Post & Engagement",
+    day_description: "Continue posting and engaging daily.",
     tasks: [
       {
-        id: 'learn_clipping',
-        title: 'Learn Clipping Basics',
-        description: 'Study the clipping guidelines and best practices for creating viral content.',
-        type: 'text_response',
+        id: 'morning_engagement_day4',
+        title: 'Morning Engagement Session',
+        description: 'Complete morning engagement session: 30 likes, 5 comments, 15 follows',
+        type: 'confirmation',
         required: true
       },
       {
-        id: 'create_sample',
-        title: 'Create a Sample Clip',
-        description: 'Create a practice clip following our guidelines (you can share it here for feedback).',
+        id: 'create_post_day4',
+        title: 'Create Daily Post',
+        description: 'Publish another slideshow post (6 slides) with proper formatting and hashtags',
         type: 'upload',
         required: true
       },
       {
-        id: 'understand_metrics',
-        title: 'Understand Performance Metrics',
-        description: 'Learn about views, tier-1 views, and how payouts work on MegaViral.',
-        type: 'text_response',
+        id: 'evening_engagement_day4',
+        title: 'Evening Engagement Session',
+        description: 'Complete evening engagement session: 30 likes, 5 comments, 15 follows',
+        type: 'confirmation',
         required: true
       }
     ]
   },
   5: {
-    day_title: "Final Verification & Launch",
-    day_description: "Complete your onboarding and become a verified Clipper!",
+    day_title: "Final Post & Onboarding Complete",
+    day_description: "Complete your final post and finish onboarding to join the main channel.",
     tasks: [
       {
-        id: 'submit_warmup',
-        title: 'Submit Warm-Up Verification',
-        description: 'Submit proof that you\'ve completed your account warm-up period in the warm-up verification channel.',
-        type: 'upload',
-        required: true
-      },
-      {
-        id: 'final_check',
-        title: 'Complete Final Checklist',
-        description: 'Ensure all your account details are correct, TikTok is connected, and you\'re ready to start clipping!',
+        id: 'morning_engagement_day5',
+        title: 'Morning Engagement Session',
+        description: 'Complete morning engagement session: 30 likes, 5 comments, 15 follows',
         type: 'confirmation',
         required: true
       },
       {
-        id: 'get_started',
-        title: 'Launch Your Clipping Journey',
-        description: 'You\'re all set! Start creating and uploading clips. Remember to follow our guidelines and engage with the community.',
+        id: 'create_post_day5',
+        title: 'Create Final Post',
+        description: 'Publish your final slideshow post (6 slides) with proper formatting and hashtags',
+        type: 'upload',
+        required: true
+      },
+      {
+        id: 'evening_engagement_day5',
+        title: 'Evening Engagement Session',
+        description: 'Complete evening engagement session: 30 likes, 5 comments, 15 follows',
+        type: 'confirmation',
+        required: true
+      },
+      {
+        id: 'complete_onboarding',
+        title: 'Onboarding Complete',
+        description: 'Congratulations! You\'ve completed the 5-day TikTok Poster onboarding. You can now join the main channel and start posting daily!',
         type: 'confirmation',
         required: true
       }
@@ -190,4 +210,3 @@ module.exports = {
   getAllTasks,
   initializeTasks
 };
-
