@@ -45,7 +45,7 @@ const TASKS_BY_DAY = {
       {
         id: 'set_bio',
         title: 'Set Bio',
-        description: 'Set your bio to: "Helping girls grow & stay motivated 💕\nFollow for daily inspo ✨\nApp you are looking for \'MegaViral ✨\'"',
+        description: 'Set your bio with 3 elements: (1) What you do - helping/growing/motivating, (2) Follow CTA, (3) Include "MegaViral" app name. Example: "Helping girls grow & stay motivated, follow for daily inspo, app you are looking for: MegaViral ✨"',
         type: 'confirmation',
         required: true
       },
