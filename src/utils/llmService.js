@@ -10,60 +10,38 @@ class LLMService {
       this.model = null;
       this.enabled = false;
     } else {
-      try {
-        this.genAI = new GoogleGenerativeAI(apiKey);
-        
-        // Try to list available models to see what's actually available
-        let workingModel = null;
+      this.apiKey = apiKey;
+      this.genAI = new GoogleGenerativeAI(apiKey);
+      this.model = null;
+      this.enabled = false;
+      this.modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+      this.currentModelIndex = 0;
+      
+      // Initialize asynchronously
+      this.initializeModel();
+    }
+  }
+
+  async initializeModel() {
+    try {
+      // First try to get a working model
+      for (const modelName of this.modelsToTry) {
         try {
-          const models = await this.genAI.listModels();
-          const availableModels = models.models.map(m => m.name);
-          console.log('📋 Available Gemini models:', availableModels);
-          
-          // Find a suitable model from available ones
-          const preferredModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-2.0-flash-exp'];
-          for (const modelName of preferredModels) {
-            if (availableModels.some(m => m.includes(modelName))) {
-              workingModel = modelName;
-              break;
-            }
-          }
-          
-          // If no preferred model, use first available
-          if (!workingModel && availableModels.length > 0) {
-            workingModel = availableModels[0].split('/').pop(); // Extract model name from path
-          }
-        } catch (listError) {
-          console.log('⚠️ Could not list models, trying direct initialization');
-          // Fallback: try common model names
-          const modelsToTest = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
-          for (const modelName of modelsToTest) {
-            try {
-              this.model = this.genAI.getGenerativeModel({ model: modelName });
-              workingModel = modelName;
-              break;
-            } catch (e) {
-              continue;
-            }
-          }
-        }
-        
-        // Initialize with found model
-        if (workingModel) {
-          this.model = this.genAI.getGenerativeModel({ model: workingModel });
-          this.modelsToTry = [workingModel];
-          this.currentModelIndex = 0;
+          this.model = this.genAI.getGenerativeModel({ model: modelName });
           this.enabled = true;
-          console.log(`✅ LLM Service initialized with Google Gemini using ${workingModel} (Vision enabled)`);
-        } else {
-          console.error('❌ No working Gemini models found with this API key');
-          this.model = null;
-          this.enabled = false;
+          console.log(`✅ LLM Service initialized with Google Gemini using ${modelName} (Vision enabled)`);
+          return;
+        } catch (e) {
+          continue;
         }
-      } catch (error) {
-        console.error('❌ Error initializing Gemini:', error);
-        this.enabled = false;
       }
+      
+      console.error('❌ No working Gemini models found. LLM features disabled.');
+      this.model = null;
+      this.enabled = false;
+    } catch (error) {
+      console.error('❌ Error initializing Gemini:', error);
+      this.enabled = false;
     }
   }
 
