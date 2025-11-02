@@ -41,6 +41,26 @@ class OnboardingDataCollector {
         if (extractedData.onboarding_questions) {
           Object.assign(onboardingData.onboarding_questions, extractedData.onboarding_questions);
         }
+        
+        // Also update OnboardingProgress with timezone and language
+        if (extractedData.personal_info) {
+          const OnboardingProgress = require('../models/OnboardingProgress');
+          const progress = await OnboardingProgress.findOne({ user_id: userId });
+          if (progress && extractedData.personal_info.timezone) {
+            progress.timezone = extractedData.personal_info.timezone;
+            await progress.save();
+          }
+          if (progress && extractedData.personal_info.languages && extractedData.personal_info.languages.length > 0) {
+            // Set language based on first language in array
+            const firstLang = extractedData.personal_info.languages[0].toLowerCase();
+            if (firstLang.includes('spanish') || firstLang.includes('español')) {
+              progress.language = 'es';
+            } else {
+              progress.language = 'en';
+            }
+            await progress.save();
+          }
+        }
       }
 
       // Store images if provided
