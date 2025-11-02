@@ -6,18 +6,18 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('rename-channel')
     .setDescription('Rename an onboarding channel')
-    .addChannelOption(option =>
-      option
-        .setName('channel')
-        .setDescription('The channel to rename (leave empty to rename current channel)')
-        .setRequired(false)
-    )
     .addStringOption(option =>
       option
         .setName('new-name')
         .setDescription('The new name for the channel')
         .setRequired(true)
         .setMaxLength(100)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('channel')
+        .setDescription('The channel to rename (leave empty to rename current channel)')
+        .setRequired(false)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
