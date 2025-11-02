@@ -22,6 +22,7 @@ class OnboardingHandlers {
       let onboardingCategory = null;
       let minChannelCount = Infinity;
       
+      console.log(`🔍 Total categories found: ${allOnboardingCategories.size}`);
       for (const category of allOnboardingCategories) {
         const channelCount = interaction.guild.channels.cache.filter(
           c => c.parentId === category.id && c.type === ChannelType.GuildText
@@ -31,6 +32,7 @@ class OnboardingHandlers {
         if (channelCount < minChannelCount) {
           minChannelCount = channelCount;
           onboardingCategory = category;
+          console.log(`🔍 Updated selection to: ${category.name} (${channelCount} channels)`);
         }
       }
       
