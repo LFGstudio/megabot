@@ -130,6 +130,10 @@ const onboardingProgressSchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'paused', 'completed', 'inactive'],
     default: 'active'
+  },
+  last_user_message: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

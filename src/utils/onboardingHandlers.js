@@ -1187,6 +1187,10 @@ class OnboardingHandlers {
 
       // Add user message to conversation history with images
       await onboardingProgress.addConversationMessage('user', message.content || '[Image(s) shared]', imageMetadata);
+      
+      // Update last_user_message timestamp
+      onboardingProgress.last_user_message = new Date();
+      await onboardingProgress.save();
 
       // Extract and store data from user message (TikTok profile, country, etc.)
       try {
@@ -1368,12 +1372,21 @@ class OnboardingHandlers {
       const channel = await guild.channels.fetch(channelId);
       if (!channel) return;
 
-      // Determine channel name based on day
-      const baseName = channel.name.split('-').slice(0, -1).join('-').replace(/\d+$/, ''); // Get base name without day suffix
-      const userName = baseName.replace('onboarding-', ''); // Extract username
+      // Extract username from current channel name
+      let userName;
+      if (channel.name.startsWith('onboarding-')) {
+        userName = channel.name.replace('onboarding-', '');
+      } else if (channel.name.startsWith('day-')) {
+        // Extract username from day-X-username format
+        const parts = channel.name.split('-');
+        userName = parts.slice(2).join('-');
+      } else {
+        userName = channel.name;
+      }
       
+      // Create new channel name based on current day
       let newChannelName;
-      if (currentDay === 0) {
+      if (currentDay === 1) {
         newChannelName = `onboarding-${userName}`;
       } else {
         newChannelName = `day-${currentDay}-${userName}`;
@@ -1400,7 +1413,7 @@ class OnboardingHandlers {
       let categoryName;
       
       // Determine category based on day
-      if (currentDay === 0) {
+      if (currentDay === 1) {
         categoryName = 'Onboarding';
       } else {
         categoryName = `Day ${currentDay}`;
