@@ -1292,20 +1292,17 @@ class OnboardingHandlers {
               
               await discordMessage.channel.send({ embeds: [completionEmbed] });
               
-              // Automatically advance to next day if not the last day
+              // Automatically advance to next day
               if (!isLastDay) {
-                // Wait a moment, then advance
-                setTimeout(async () => {
-                  await onboardingProgress.advanceToNextDay(false); // Use normal advance (day is complete)
-                  
-                  // Update channel name and category
-                  const guild = client.guilds.cache.first();
-                  await this.updateChannelForDay(onboardingProgress.channel_id, onboardingProgress.current_day, guild);
-                  
-                  const channel = await client.channels.fetch(onboardingProgress.channel_id);
-                  const user = await client.users.fetch(onboardingProgress.user_id);
-                  await this.sendDayWelcomeMessage(channel, user, client, onboardingProgress);
-                }, 3000); // 3 second delay
+                await onboardingProgress.advanceToNextDay(false);
+                
+                // Update channel name and category
+                const guild = client.guilds.cache.first();
+                await this.updateChannelForDay(onboardingProgress.channel_id, onboardingProgress.current_day, guild);
+                
+                const channel = await client.channels.fetch(onboardingProgress.channel_id);
+                const user = await client.users.fetch(onboardingProgress.user_id);
+                await this.sendDayWelcomeMessage(channel, user, client, onboardingProgress);
               }
             } else {
               const remainingCount = dayTasks.tasks.filter(t => !t.completed).length;
