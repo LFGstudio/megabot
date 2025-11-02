@@ -32,7 +32,7 @@ module.exports = {
 
       if (!isModerator && !isAdmin) {
         return await interaction.reply({
-          content: '❌ You need moderator or admin permissions to use this command.',
+          content: 'You need moderator or admin permissions to use this command.',
           ephemeral: true
         });
       }
@@ -47,7 +47,7 @@ module.exports = {
 
       if (!onboardingProgress) {
         return await interaction.reply({
-          content: '❌ This is not an onboarding channel.',
+          content: 'This is not an onboarding channel.',
           ephemeral: true
         });
       }
@@ -64,15 +64,15 @@ module.exports = {
       await onboardingProgress.save();
 
       const statusEmbed = new EmbedBuilder()
-        .setTitle(shouldMute ? '🔇 Bot Muted' : '🔊 Bot Unmuted')
+        .setTitle(shouldMute ? 'Bot Muted' : 'Bot Unmuted')
         .setDescription(
           shouldMute
-            ? `The bot will no longer reply when moderators/admins are speaking in this channel.\nRegular users can still interact with the bot.`
+            ? `The bot will no longer reply when moderators/admins are speaking in this channel. Regular users can still interact with the bot.`
             : `The bot will now reply to all messages in this channel.`
         )
         .addFields(
           { name: 'Channel', value: `<#${targetChannel.id}>`, inline: true },
-          { name: 'Status', value: shouldMute ? '🔇 Muted' : '🔊 Unmuted', inline: true },
+          { name: 'Status', value: shouldMute ? 'Muted' : 'Unmuted', inline: true },
           { name: 'Action by', value: `<@${interaction.user.id}>`, inline: true }
         )
         .setColor(shouldMute ? 0xff6b6b : 0x00ff00)
@@ -87,8 +87,8 @@ module.exports = {
       try {
         await targetChannel.send({
           content: shouldMute 
-            ? '🔇 **Bot Muted**: Moderators and admins can now chat with users without the bot replying. Regular users can still interact with the bot.'
-            : '🔊 **Bot Unmuted**: The bot will now respond to all messages.',
+            ? 'Bot Muted: Moderators and admins can now chat with users without the bot replying. Regular users can still interact with the bot.'
+            : 'Bot Unmuted: The bot will now respond to all messages.',
           allowedMentions: { parse: [] }
         });
       } catch (err) {
@@ -98,7 +98,7 @@ module.exports = {
     } catch (error) {
       console.error('Error in mute-onboarding-bot command:', error);
       await interaction.reply({
-        content: '❌ An error occurred while muting/unmuting the bot.',
+        content: 'An error occurred while muting/unmuting the bot.',
         ephemeral: true
       });
     }

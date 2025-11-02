@@ -1101,20 +1101,29 @@ class OnboardingHandlers {
         return; // Not an onboarding channel or LLM disabled
       }
 
-      // Check if bot is muted (moderators/admins can mute bot)
-      if (onboardingProgress.bot_muted) {
-        // Check if the message is from a moderator/admin
-        const member = message.member;
-        const isModerator = client.config.roles.moderator && 
-                           member.roles.cache.has(client.config.roles.moderator);
-        const isAdmin = member.permissions.has(PermissionFlagsBits.Administrator) ||
-                       (client.config.roles.admin && member.roles.cache.has(client.config.roles.admin));
-        
-        // If a moderator/admin is speaking, don't reply
-        if (isModerator || isAdmin) {
-          return; // Bot won't reply when muted and moderator/admin is talking
+      // Check if message is from moderator/admin - auto-mute bot when they speak
+      const member = message.member;
+      const isModerator = client.config.roles.moderator && 
+                         member.roles.cache.has(client.config.roles.moderator);
+      const isAdmin = member.permissions.has(PermissionFlagsBits.Administrator) ||
+                     (client.config.roles.admin && member.roles.cache.has(client.config.roles.admin));
+      
+      if (isModerator || isAdmin) {
+        // Moderator/admin is speaking - mute bot automatically
+        if (!onboardingProgress.bot_muted) {
+          onboardingProgress.bot_muted = true;
+          onboardingProgress.muted_by = message.author.id;
+          onboardingProgress.muted_at = new Date();
+          await onboardingProgress.save();
+          console.log(`[AUTO-MUTE] Bot muted because ${message.author.username} (${isModerator ? 'mod' : 'admin'}) is speaking`);
         }
-        // Regular users can still interact even when muted (bot will respond to them)
+        return; // Don't reply to moderators/admins
+      }
+
+      // Check if bot is currently muted from previous moderator interaction
+      if (onboardingProgress.bot_muted) {
+        // Bot is muted, don't reply
+        return;
       }
 
       // Get user model for context
