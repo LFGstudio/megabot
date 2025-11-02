@@ -1038,13 +1038,17 @@ class OnboardingHandlers {
 
       const welcomeEmbed = new EmbedBuilder()
         .setTitle(`Day ${currentDay}: ${dayData.day_title}`)
-        .setDescription(`${welcomeMessage}\n\n${dayData.day_description}`)
-        .addFields(
-          { name: `Today's Tasks (${dayTasks.tasks.filter(t => !t.completed).length} remaining)`, value: taskList || 'No tasks available', inline: false }
-        )
+        .setDescription(welcomeMessage)
         .setColor(0x5865F2)
         .setFooter({ text: `Progress: Day ${currentDay} of 5` })
         .setTimestamp();
+      
+      // Only show tasks if not Day 1 (Day 1 will be conversation-driven first)
+      if (currentDay !== 1) {
+        welcomeEmbed.addFields(
+          { name: `Today's Tasks (${dayTasks.tasks.filter(t => !t.completed).length} remaining)`, value: taskList || 'No tasks available', inline: false }
+        );
+      }
 
       // Build mention string
       const hasModerator = client.config.roles.moderator;
