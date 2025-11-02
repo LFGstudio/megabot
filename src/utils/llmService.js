@@ -14,65 +14,36 @@ class LLMService {
       this.genAI = new GoogleGenerativeAI(apiKey);
       this.model = null;
       this.enabled = false;
-      this.modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+      // Try Gemini 2.5 models first (current as of Nov 2024), then fallback to older models
+      this.modelsToTry = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
       this.currentModelIndex = 0;
       
-      console.log('✅ LLM Service initialized with Google Gemini (will find working model on first use)');
+      // Initialize asynchronously
+      this.initializeModel();
     }
   }
 
-  async ensureModelInitialized() {
-    if (this.model && this.enabled) {
-      return true;
-    }
-    
+  async initializeModel() {
     try {
-      // Try to list available models first
-      const models = await this.genAI.listModels();
-      const availableModelNames = models.models.map(m => m.name);
-      console.log('📋 Available Gemini models:', availableModelNames);
-      
-      // Extract just the model name (e.g., "models/gemini-1.5-flash" -> "gemini-1.5-flash")
-      const preferredModelNames = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-1.5'];
-      
-      for (const modelName of preferredModelNames) {
-        const fullModelName = availableModelNames.find(m => m.includes(modelName));
-        if (fullModelName) {
+      // First try to get a working model
+      for (const modelName of this.modelsToTry) {
+        try {
           this.model = this.genAI.getGenerativeModel({ model: modelName });
           this.enabled = true;
-          console.log(`✅ Using Gemini model: ${modelName}`);
-          return true;
+          console.log(`✅ LLM Service initialized with Google Gemini using ${modelName} (Vision enabled)`);
+          return;
+        } catch (e) {
+          continue;
         }
       }
       
-      // If no preferred model, use first available
-      if (availableModelNames.length > 0) {
-        const firstModel = availableModelNames[0];
-        this.model = this.genAI.getGenerativeModel({ model: firstModel });
-        this.enabled = true;
-        console.log(`✅ Using first available model: ${firstModel}`);
-        return true;
-      }
-    } catch (listError) {
-      console.log('⚠️ Could not list models, trying direct initialization');
+      console.error('❌ No working Gemini models found. LLM features disabled.');
+      this.model = null;
+      this.enabled = false;
+    } catch (error) {
+      console.error('❌ Error initializing Gemini:', error);
+      this.enabled = false;
     }
-    
-    // Fallback: try common model names
-    for (const modelName of this.modelsToTry) {
-      try {
-        this.model = this.genAI.getGenerativeModel({ model: modelName });
-        this.enabled = true;
-        console.log(`✅ Using Gemini model: ${modelName}`);
-        return true;
-      } catch (e) {
-        continue;
-      }
-    }
-    
-    console.error('❌ No working Gemini models found. LLM features disabled.');
-    this.model = null;
-    this.enabled = false;
-    return false;
   }
 
   /**
@@ -83,9 +54,6 @@ class LLMService {
    * @param {Array} images - Array of image data (base64 strings or URLs)
    */
   async generateResponse(userMessage, conversationHistory, context = {}, images = []) {
-    // Ensure model is initialized
-    await this.ensureModelInitialized();
-    
     if (!this.enabled || !this.model) {
       return {
         success: false,
@@ -299,9 +267,6 @@ Keep it concise (under 200 words) and friendly.`;
    * Analyze an image and provide feedback
    */
   async analyzeImage(imageData, context, userMessage = '') {
-    // Ensure model is initialized
-    await this.ensureModelInitialized();
-    
     if (!this.enabled || !this.model) {
       return {
         success: false,
