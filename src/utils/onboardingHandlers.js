@@ -1057,6 +1057,11 @@ class OnboardingHandlers {
         embeds: [welcomeEmbed]
       });
 
+      // Add welcome message to conversation history
+      if (onboardingProgress && currentDay === 1) {
+        await onboardingProgress.addConversationMessage('assistant', welcomeMessage, []);
+      }
+      
       // Add system message to conversation history
       if (onboardingProgress) {
         await onboardingProgress.addConversationMessage('system', `Day ${currentDay} started. Tasks: ${dayTasks.tasks.map(t => t.title).join(', ')}`, []);
@@ -1066,8 +1071,8 @@ class OnboardingHandlers {
       console.error('Error sending day welcome message:', error);
       // Fallback to basic message
       const fallbackEmbed = new EmbedBuilder()
-        .setTitle('👋 Welcome to Your Onboarding Journey!')
-        .setDescription(`Hi ${user}, welcome to your 5-day onboarding process!`)
+        .setTitle('Welcome to Your Onboarding Journey')
+        .setDescription(`Hi ${user}, welcome to your 5-day onboarding process.`)
         .setColor(0x5865F2)
         .setTimestamp();
       
