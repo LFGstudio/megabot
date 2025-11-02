@@ -17,32 +17,31 @@ class LLMService {
       this.modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
       this.currentModelIndex = 0;
       
-      // Initialize asynchronously
-      this.initializeModel();
+      // Initialize synchronously - find which model works when first called
     }
   }
 
-  async initializeModel() {
-    try {
-      // First try to get a working model
-      for (const modelName of this.modelsToTry) {
-        try {
-          this.model = this.genAI.getGenerativeModel({ model: modelName });
-          this.enabled = true;
-          console.log(`✅ LLM Service initialized with Google Gemini using ${modelName} (Vision enabled)`);
-          return;
-        } catch (e) {
-          continue;
-        }
-      }
-      
-      console.error('❌ No working Gemini models found. LLM features disabled.');
-      this.model = null;
-      this.enabled = false;
-    } catch (error) {
-      console.error('❌ Error initializing Gemini:', error);
-      this.enabled = false;
+  async ensureModelInitialized() {
+    if (this.model && this.enabled) {
+      return true;
     }
+    
+    // Try to find a working model
+    for (const modelName of this.modelsToTry) {
+      try {
+        this.model = this.genAI.getGenerativeModel({ model: modelName });
+        this.enabled = true;
+        console.log(`✅ Using Gemini model: ${modelName}`);
+        return true;
+      } catch (e) {
+        continue;
+      }
+    }
+    
+    console.error('❌ No working Gemini models found. LLM features disabled.');
+    this.model = null;
+    this.enabled = false;
+    return false;
   }
 
   /**
@@ -53,6 +52,9 @@ class LLMService {
    * @param {Array} images - Array of image data (base64 strings or URLs)
    */
   async generateResponse(userMessage, conversationHistory, context = {}, images = []) {
+    // Ensure model is initialized
+    await this.ensureModelInitialized();
+    
     if (!this.enabled || !this.model) {
       return {
         success: false,
@@ -266,6 +268,9 @@ Keep it concise (under 200 words) and friendly.`;
    * Analyze an image and provide feedback
    */
   async analyzeImage(imageData, context, userMessage = '') {
+    // Ensure model is initialized
+    await this.ensureModelInitialized();
+    
     if (!this.enabled || !this.model) {
       return {
         success: false,
