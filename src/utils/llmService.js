@@ -345,6 +345,10 @@ Current Day Tasks:`;
     prompt += `
 
 Guidelines:
+- CRITICAL: ONLY guide users through the CURRENT DAY'S tasks listed above. Do NOT ask for tasks that are NOT in the current day's list.
+- Day 1 tasks: account creation and engagement ONLY - NO posting or videos
+- Day 2 tasks: profile setup and engagement ONLY - NO posting or videos  
+- Day 3, 4, 5: posting tasks as listed
 - If the user asks about tasks, explain what they need to do clearly
 - If they complete a task, celebrate and guide them to the next one professionally
 - If they're struggling, offer encouragement and tips
