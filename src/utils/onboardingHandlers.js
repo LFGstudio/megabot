@@ -1300,6 +1300,11 @@ class OnboardingHandlers {
                 // Wait a moment, then advance
                 setTimeout(async () => {
                   await onboardingProgress.advanceToNextDay(false); // Use normal advance (day is complete)
+                  
+                  // Update channel name and category
+                  const guild = client.guilds.cache.first();
+                  await this.updateChannelForDay(onboardingProgress.channel_id, onboardingProgress.current_day, guild);
+                  
                   const channel = await client.channels.fetch(onboardingProgress.channel_id);
                   const user = await client.users.fetch(onboardingProgress.user_id);
                   await this.sendDayWelcomeMessage(channel, user, client, onboardingProgress);
@@ -1335,6 +1340,9 @@ class OnboardingHandlers {
         const advanced = await onboardingProgress.advanceToNextDay(true); // Force advance
         
         if (advanced) {
+          // Update channel name and category based on new day
+          await this.updateChannelForDay(channelId, onboardingProgress.current_day, client.guilds.cache.first());
+          
           // Send next day welcome message
           const channel = await client.channels.fetch(channelId);
           const user = await client.users.fetch(onboardingProgress.user_id);
@@ -1349,6 +1357,156 @@ class OnboardingHandlers {
     } catch (error) {
       console.error('Error advancing to next day:', error);
       return false;
+    }
+  }
+
+  /**
+   * Update channel name and category based on current day
+   */
+  async updateChannelForDay(channelId, currentDay, guild) {
+    try {
+      const channel = await guild.channels.fetch(channelId);
+      if (!channel) return;
+
+      // Determine channel name based on day
+      const baseName = channel.name.split('-').slice(0, -1).join('-').replace(/\d+$/, ''); // Get base name without day suffix
+      const userName = baseName.replace('onboarding-', ''); // Extract username
+      
+      let newChannelName;
+      if (currentDay === 0) {
+        newChannelName = `onboarding-${userName}`;
+      } else {
+        newChannelName = `day-${currentDay}-${userName}`;
+      }
+
+      // Only rename if different
+      if (channel.name !== newChannelName) {
+        await channel.setName(newChannelName);
+        console.log(`✅ Renamed channel from ${channel.name} to ${newChannelName}`);
+      }
+
+      // Move channel to appropriate category
+      await this.moveChannelToCategory(channel, currentDay, guild);
+    } catch (error) {
+      console.error('Error updating channel for day:', error);
+    }
+  }
+
+  /**
+   * Move channel to appropriate category based on day
+   */
+  async moveChannelToCategory(channel, currentDay, guild) {
+    try {
+      let categoryName;
+      
+      // Determine category based on day
+      if (currentDay === 0) {
+        categoryName = 'Onboarding';
+      } else {
+        categoryName = `Day ${currentDay}`;
+      }
+
+      // Find or create the category
+      let category = guild.channels.cache.find(
+        c => c.type === ChannelType.GuildCategory && c.name === categoryName
+      );
+
+      if (!category) {
+        // Create category if it doesn't exist
+        category = await guild.channels.create({
+          name: categoryName,
+          type: ChannelType.GuildCategory
+        });
+        console.log(`✅ Created category: ${categoryName}`);
+      }
+
+      // Only move if not already in the right category
+      if (channel.parentId !== category.id) {
+        await channel.setParent(category.id);
+        console.log(`✅ Moved channel ${channel.name} to category ${categoryName}`);
+      }
+    } catch (error) {
+      console.error('Error moving channel to category:', error);
+    }
+  }
+
+  /**
+   * Check for inactive onboarding channels and delete them (Days 1-2 only)
+   */
+  async checkAndDeleteInactiveChannels(client) {
+    try {
+      const OnboardingProgress = require('../models/OnboardingProgress');
+      
+      // Find all active onboarding progress documents
+      const allProgress = await OnboardingProgress.find({ status: { $ne: 'completed' } });
+      
+      console.log(`🔍 Checking ${allProgress.length} active onboarding channels for inactivity...`);
+      
+      let deletedCount = 0;
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      for (const progress of allProgress) {
+        try {
+          // Only check Days 1-2
+          if (progress.current_day > 2) {
+            continue;
+          }
+
+          const channel = await client.channels.fetch(progress.channel_id).catch(() => null);
+          if (!channel) {
+            console.log(`⚠️ Channel ${progress.channel_id} not found, skipping...`);
+            continue;
+          }
+
+          // Check if user has sent a message in the last 24 hours
+          // We'll check the last_user_message timestamp from progress
+          const hasRecentActivity = progress.last_user_message && 
+                                     new Date(progress.last_user_message) > twentyFourHoursAgo;
+
+          if (!hasRecentActivity) {
+            // Delete the channel and mark progress as inactive
+            console.log(`🗑️ Deleting inactive channel: ${channel.name} (Day ${progress.current_day})`);
+            
+            // Notify user before deletion
+            const warningEmbed = new EmbedBuilder()
+              .setTitle('⏰ Channel Inactivity Warning')
+              .setDescription(`This onboarding channel has been inactive for 24 hours and will be deleted.`)
+              .addFields(
+                { name: '📋 Status', value: `Day ${progress.current_day} - No activity detected`, inline: false },
+                { name: '💡 Note', value: 'Channels with no activity for 24+ hours on Days 1-2 are automatically cleaned up. Start fresh anytime!', inline: false }
+              )
+              .setColor(0xff9900)
+              .setTimestamp();
+
+            try {
+              await channel.send({ embeds: [warningEmbed] });
+              await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second warning
+            } catch (notifyError) {
+              console.log('Could not send warning message, proceeding with deletion');
+            }
+
+            // Delete channel
+            await channel.delete();
+            
+            // Mark progress as inactive
+            progress.status = 'inactive';
+            await progress.save();
+            
+            deletedCount++;
+          }
+        } catch (error) {
+          console.error(`Error processing channel ${progress.channel_id}:`, error);
+        }
+      }
+
+      if (deletedCount > 0) {
+        console.log(`✅ Cleaned up ${deletedCount} inactive onboarding channels (Days 1-2 only)`);
+      } else {
+        console.log('✅ No inactive channels found (Days 1-2)');
+      }
+    } catch (error) {
+      console.error('Error checking and deleting inactive channels:', error);
     }
   }
 }

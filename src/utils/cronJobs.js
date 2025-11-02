@@ -12,6 +12,7 @@ class CronJobs {
     this.setupLeaderboardUpdate();
     this.setupHealthCheck();
     this.setupTikTokScraping();
+    this.setupInactiveChannelCleanup();
     console.log('✅ All cron jobs initialized');
   }
 
@@ -73,6 +74,22 @@ class CronJobs {
     this.jobs.set('tiktokScraping', tiktokJob);
     tiktokJob.start();
     console.log('⏰ TikTok scraping job scheduled (every 6 hours)');
+  }
+
+  setupInactiveChannelCleanup() {
+    // Check for inactive onboarding channels every hour
+    const cleanupJob = cron.schedule('0 * * * *', async () => {
+      console.log('🗑️ Starting inactive channel cleanup...');
+      const onboardingHandlers = require('./onboardingHandlers');
+      await onboardingHandlers.checkAndDeleteInactiveChannels(this.client);
+    }, {
+      scheduled: false,
+      timezone: 'UTC'
+    });
+
+    this.jobs.set('inactiveChannelCleanup', cleanupJob);
+    cleanupJob.start();
+    console.log('⏰ Inactive channel cleanup scheduled (every hour)');
   }
 
   async updateAllUserStats() {

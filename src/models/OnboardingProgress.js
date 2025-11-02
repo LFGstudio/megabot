@@ -125,6 +125,11 @@ const onboardingProgressSchema = new mongoose.Schema({
   muted_at: {
     type: Date,
     default: null
+  },
+  status: {
+    type: String,
+    enum: ['active', 'paused', 'completed', 'inactive'],
+    default: 'active'
   }
 }, {
   timestamps: true
@@ -134,6 +139,7 @@ const onboardingProgressSchema = new mongoose.Schema({
 onboardingProgressSchema.index({ user_id: 1 });
 onboardingProgressSchema.index({ channel_id: 1 });
 onboardingProgressSchema.index({ current_day: 1 });
+onboardingProgressSchema.index({ status: 1 });
 
 // Instance methods
 onboardingProgressSchema.methods.getCurrentDayTasks = function() {
