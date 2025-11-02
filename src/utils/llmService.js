@@ -12,32 +12,15 @@ class LLMService {
     } else {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
-        // Try available models in order - test which one works
-        const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp', 'gemini-pro-vision'];
-        let modelInitialized = false;
+        // List of models to try in order of preference
+        // gemini-1.5-flash is fastest, gemini-1.5-pro is more capable
+        this.modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
+        this.currentModelIndex = 0;
         
-        for (const modelName of modelsToTry) {
-          try {
-            // Just create the model instance to test if it's available
-            this.model = this.genAI.getGenerativeModel({ model: modelName });
-            console.log(`✅ Using ${modelName} model`);
-            modelInitialized = true;
-            break;
-          } catch (e) {
-            console.log(`⚠️ ${modelName} not available, trying next...`);
-            continue;
-          }
-        }
-        
-        if (!modelInitialized) {
-          console.log('⚠️ No working Gemini model found, LLM disabled');
-          this.model = null;
-          this.enabled = false;
-          return;
-        }
-        
+        // Initialize with first model (we'll handle errors when actually using it)
+        this.model = this.genAI.getGenerativeModel({ model: this.modelsToTry[this.currentModelIndex] });
         this.enabled = true;
-        console.log('✅ LLM Service initialized with Google Gemini (Vision enabled)');
+        console.log(`✅ LLM Service initialized with Google Gemini using ${this.modelsToTry[this.currentModelIndex]} (Vision enabled)`);
       } catch (error) {
         console.error('❌ Error initializing Gemini:', error);
         this.enabled = false;
@@ -133,7 +116,18 @@ class LLMService {
       });
 
       // Generate response with current message (which includes images)
-      const result = await chat.sendMessage(currentUserParts);
+      let result;
+      try {
+        result = await chat.sendMessage(currentUserParts);
+      } catch (modelError) {
+        // If model not found error, try next model
+        if (modelError.message && modelError.message.includes('not found')) {
+          return await this.retryWithNextModel(() => 
+            this.generateResponse(userMessage, conversationHistory, context, images)
+          );
+        }
+        throw modelError;
+      }
 
       const response = await result.response;
       const assistantMessage = response.text();
@@ -281,7 +275,18 @@ Provide specific, actionable feedback.`;
         }
       ];
 
-      const result = await this.model.generateContent(parts);
+      let result;
+      try {
+        result = await this.model.generateContent(parts);
+      } catch (modelError) {
+        // If model not found error, try next model
+        if (modelError.message && modelError.message.includes('not found')) {
+          return await this.retryWithNextModel(() => 
+            this.analyzeImage(imageData, context, userMessage)
+          );
+        }
+        throw modelError;
+      }
 
       const response = await result.response;
       return {
@@ -294,6 +299,32 @@ Provide specific, actionable feedback.`;
         success: false,
         analysis: 'I had trouble analyzing this image. Please try again or describe what you see.'
       };
+    }
+  }
+
+  /**
+   * Retry with next available model if current one fails
+   */
+  async retryWithNextModel(operation) {
+    this.currentModelIndex++;
+    
+    if (this.currentModelIndex >= this.modelsToTry.length) {
+      console.error('❌ All Gemini models failed');
+      return {
+        success: false,
+        message: 'LLM service is currently unavailable. Please try again later.'
+      };
+    }
+    
+    const nextModel = this.modelsToTry[this.currentModelIndex];
+    console.log(`⚠️ Switching to ${nextModel} model`);
+    
+    try {
+      this.model = this.genAI.getGenerativeModel({ model: nextModel });
+      return await operation();
+    } catch (error) {
+      // Try next model
+      return await this.retryWithNextModel(operation);
     }
   }
 
