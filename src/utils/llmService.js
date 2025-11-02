@@ -17,7 +17,7 @@ class LLMService {
       this.modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
       this.currentModelIndex = 0;
       
-      // Initialize synchronously - find which model works when first called
+      console.log('✅ LLM Service initialized with Google Gemini (will find working model on first use)');
     }
   }
 
