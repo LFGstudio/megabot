@@ -113,6 +113,18 @@ const onboardingProgressSchema = new mongoose.Schema({
   llm_enabled: {
     type: Boolean,
     default: true
+  },
+  bot_muted: {
+    type: Boolean,
+    default: false
+  },
+  muted_by: {
+    type: String,
+    default: null
+  },
+  muted_at: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

@@ -12,9 +12,23 @@ class LLMService {
     } else {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
-        // Use gemini-1.5-flash-latest for vision capabilities and faster responses
-        // Alternative models: gemini-1.5-pro, gemini-pro
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+        // Try gemini-pro first (most stable), then fallback to others
+        // Model names: gemini-pro, gemini-1.5-pro, gemini-1.5-flash
+        try {
+          this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+          console.log('✅ Using gemini-pro model');
+        } catch (e) {
+          try {
+            console.log('⚠️ gemini-pro failed, trying gemini-1.5-pro');
+            this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+            console.log('✅ Using gemini-1.5-pro model');
+          } catch (e2) {
+            console.log('⚠️ All models failed, LLM disabled');
+            this.model = null;
+            this.enabled = false;
+            return;
+          }
+        }
         this.enabled = true;
         console.log('✅ LLM Service initialized with Google Gemini (Vision enabled)');
       } catch (error) {

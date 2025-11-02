@@ -1029,20 +1029,25 @@ class OnboardingHandlers {
       // Generate LLM welcome message if enabled
       let welcomeMessage = `Welcome to Day ${currentDay}! Let's get started with your tasks.`;
       if (llmService.isEnabled() && onboardingProgress) {
-        const llmResponse = await llmService.generateResponse(
-          `I'm starting Day ${currentDay} of onboarding. Can you welcome me and explain what I need to do today?`,
-          onboardingProgress.conversation_history || [],
-          {
-            currentDay,
-            tasks: dayTasks.tasks,
-            userName: user.username,
-            userRole: 'New Member'
+        try {
+          const llmResponse = await llmService.generateResponse(
+            `I'm starting Day ${currentDay} of onboarding. Can you welcome me and explain what I need to do today?`,
+            onboardingProgress.conversation_history || [],
+            {
+              currentDay,
+              tasks: dayTasks.tasks,
+              userName: user.username,
+              userRole: 'New Member'
+            }
+          );
+          
+          if (llmResponse.success) {
+            welcomeMessage = llmResponse.message;
+            await onboardingProgress.addConversationMessage('assistant', welcomeMessage, []);
           }
-        );
-        
-        if (llmResponse.success) {
-          welcomeMessage = llmResponse.message;
-          await onboardingProgress.addConversationMessage('assistant', welcomeMessage);
+        } catch (llmError) {
+          console.error('Error generating welcome message with LLM:', llmError);
+          // Continue with default welcome message
         }
       }
 
@@ -1101,6 +1106,22 @@ class OnboardingHandlers {
 
       if (!onboardingProgress || !onboardingProgress.llm_enabled) {
         return; // Not an onboarding channel or LLM disabled
+      }
+
+      // Check if bot is muted (moderators/admins can mute bot)
+      if (onboardingProgress.bot_muted) {
+        // Check if the message is from a moderator/admin
+        const member = message.member;
+        const isModerator = client.config.roles.moderator && 
+                           member.roles.cache.has(client.config.roles.moderator);
+        const isAdmin = member.permissions.has(PermissionFlagsBits.Administrator) ||
+                       (client.config.roles.admin && member.roles.cache.has(client.config.roles.admin));
+        
+        // If a moderator/admin is speaking, don't reply
+        if (isModerator || isAdmin) {
+          return; // Bot won't reply when muted and moderator/admin is talking
+        }
+        // Regular users can still interact even when muted (bot will respond to them)
       }
 
       // Get user model for context
