@@ -79,8 +79,8 @@ const TASKS_BY_DAY = {
       {
         id: 'create_first_post',
         title: 'Create First Slideshow Post',
-        description: 'Publish your first slideshow post with 6 slides, Pinterest images, provided text format. Include hashtags: #girlssupportgirls #tiktokgrowth #howtogoviral',
-        type: 'upload',
+        description: 'When you reach this task, a human manager will guide you through creating your first slideshow post. Please wait for their assistance.',
+        type: 'human_ping',
         required: true
       },
       {
@@ -113,8 +113,8 @@ const TASKS_BY_DAY = {
       {
         id: 'create_post_day4',
         title: 'Create Daily Post',
-        description: 'Publish another slideshow post (6 slides) with proper formatting and hashtags',
-        type: 'upload',
+        description: 'When you reach this task, a human manager will guide you through creating your post. Please wait for their assistance.',
+        type: 'human_ping',
         required: true
       },
       {
@@ -140,8 +140,8 @@ const TASKS_BY_DAY = {
       {
         id: 'create_post_day5',
         title: 'Create Final Post',
-        description: 'Publish your final slideshow post (6 slides) with proper formatting and hashtags',
-        type: 'upload',
+        description: 'When you reach this task, a human manager will guide you through creating your final post. Please wait for their assistance.',
+        type: 'human_ping',
         required: true
       },
       {

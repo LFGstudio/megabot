@@ -1217,9 +1217,30 @@ class OnboardingHandlers {
         // Continue even if data collection fails
       }
 
+      // Check if next uncompleted task requires human ping
+      const dayTasks = onboardingProgress.getCurrentDayTasks();
+      const nextTask = dayTasks.tasks.find(t => !t.completed);
+      if (nextTask && nextTask.type === 'human_ping') {
+        // Ping human manager for posting task
+        const humanPingEmbed = new EmbedBuilder()
+          .setTitle('Human Manager Requested')
+          .setDescription(`You have reached the ${nextTask.title} task. A human manager will join shortly to guide you through this step.`)
+          .setColor(0xff9900)
+          .setTimestamp();
+
+        await message.reply({ embeds: [humanPingEmbed] });
+
+        // Ping moderator role
+        const hasModerator = client.config.roles.moderator;
+        if (hasModerator) {
+          await message.channel.send(`<@&${client.config.roles.moderator}> A user needs assistance with ${nextTask.title} on Day ${onboardingProgress.current_day}.`);
+        }
+
+        return; // Don't continue with LLM response
+      }
+
       // Generate LLM response with images
       const dayData = getTasksForDay(onboardingProgress.current_day);
-      const dayTasks = onboardingProgress.getCurrentDayTasks();
 
       const llmResponse = await llmService.generateResponse(
         message.content || 'I\'ve shared some images. What do you see?',
