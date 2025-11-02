@@ -1116,6 +1116,12 @@ class OnboardingHandlers {
           onboardingProgress.muted_at = new Date();
           await onboardingProgress.save();
           console.log(`[AUTO-MUTE] Bot muted because ${message.author.username} (${isModerator ? 'mod' : 'admin'}) is speaking`);
+          
+          // Update channel name to show needs attention
+          const guild = message.guild;
+          if (guild) {
+            await this.updateChannelForDay(message.channel.id, onboardingProgress.current_day, guild);
+          }
         }
         return; // Don't reply to moderators/admins
       }
@@ -1426,8 +1432,20 @@ class OnboardingHandlers {
       const channel = await guild.channels.fetch(channelId);
       if (!channel) return;
 
-      // Extract username from current channel name
+      // Extract username from current channel name (handle prefixes)
       let userName;
+      const prefixes = ['⚠️ ', '🔴 ', '❗ ', '⚠️'];
+      let hasPrefix = false;
+      let prefix = '';
+      
+      for (const p of prefixes) {
+        if (channel.name.startsWith(p)) {
+          hasPrefix = true;
+          prefix = p;
+          break;
+        }
+      }
+      
       if (channel.name.startsWith('onboarding-')) {
         userName = channel.name.replace('onboarding-', '');
       } else if (channel.name.startsWith('day-')) {
@@ -1438,12 +1456,30 @@ class OnboardingHandlers {
         userName = channel.name;
       }
       
+      // Get OnboardingProgress to check for bot_muted or human_ping status
+      const OnboardingProgress = require('../models/OnboardingProgress');
+      const progress = await OnboardingProgress.findOne({ channel_id: channelId });
+      
+      // Determine if we need a prefix based on status
+      let statusPrefix = '';
+      if (progress) {
+        if (progress.bot_muted) {
+          statusPrefix = '⚠️ ';
+        } else if (progress.current_day > 2) {
+          const dayTasks = progress.getCurrentDayTasks();
+          const nextTask = dayTasks.tasks.find(t => !t.completed);
+          if (nextTask && nextTask.type === 'human_ping') {
+            statusPrefix = '🔴 ';
+          }
+        }
+      }
+      
       // Create new channel name based on current day
       let newChannelName;
       if (currentDay === 1) {
-        newChannelName = `onboarding-${userName}`;
+        newChannelName = statusPrefix + `onboarding-${userName}`;
       } else {
-        newChannelName = `day-${currentDay}-${userName}`;
+        newChannelName = statusPrefix + `day-${currentDay}-${userName}`;
       }
 
       // Only rename if different
