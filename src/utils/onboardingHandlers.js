@@ -1101,6 +1101,35 @@ class OnboardingHandlers {
         return; // Not an onboarding channel or LLM disabled
       }
 
+      // Check if user typed "human" to request manager
+      const messageContent = message.content.trim().toLowerCase();
+      if (messageContent === 'human') {
+        // Mute bot and notify manager
+        onboardingProgress.bot_muted = true;
+        onboardingProgress.muted_by = message.author.id;
+        onboardingProgress.muted_at = new Date();
+        await onboardingProgress.save();
+        
+        const humanEmbed = new EmbedBuilder()
+          .setTitle('Human Manager Requested')
+          .setDescription('A manager will join you shortly to assist.')
+          .setColor(0xff9900)
+          .setTimestamp();
+        
+        await message.reply({ embeds: [humanEmbed] });
+        
+        // Ping moderator role
+        const hasModerator = client.config.roles.moderator;
+        if (hasModerator) {
+          await message.channel.send(`<@&${client.config.roles.moderator}> <@${message.author.id}> needs human assistance in <#${message.channel.id}>.`);
+        }
+        
+        // Update channel name
+        await this.updateChannelForDay(message.channel.id, onboardingProgress.current_day, message.guild);
+        
+        return; // Don't continue with LLM response
+      }
+
       // Check if message is from moderator/admin - auto-mute bot when they speak
       const member = message.member;
       const isModerator = client.config.roles.moderator && 
