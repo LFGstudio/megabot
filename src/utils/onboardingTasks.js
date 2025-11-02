@@ -38,7 +38,7 @@ const TASKS_BY_DAY = {
       {
         id: 'set_profile_picture',
         title: 'Set Profile Picture',
-        description: 'Upload a cute, girly aesthetic photo from Pinterest as your profile picture',
+        description: 'Upload a cute, 25 year old student girl photo from Pinterest as your profile picture',
         type: 'upload',
         required: true
       },
