@@ -1,0 +1,569 @@
+# TikTok Poster Onboarding Bot — Spec & Starter Code
+
+This document includes:
+
+* Bot persona & first message
+* Day-by-day onboarding scripts (EN/ES)
+* US targeting logic (Android/iOS + Tier-1 logic)
+* Engagement, profile, and posting SOPs
+* Payment explanation & objection handling
+* Proof/verification flow
+* Reminder & non-response logic
+* Data model/schema
+* Discord bot starter code (Python, discord.py) with bilingual + timezone support, reminders, and human handoff hooks
+* Admin commands & moderation notes
+
+---
+
+## 0) Bot Persona & First Message
+
+**Tone**: Professional, kind, clear, account-manager style. No slang or hype. Emojis avoided.
+
+**First message (exact):**
+
+> Hello, this is your AI onboarding manager.
+> I will be guiding you for the next 5 days to help you become a TikTok Poster.
+> Before we begin, do you have any questions?
+> If you ever need assistance from a human, just type human and my boss will show up to help you!
+
+**Human handoff keyword:** `human`
+
+* When user types `human`, ping the configured manager role and pause automated reminders for 24h.
+
+**Language:** English and Spanish. Ask the user to choose on Day 1 and store preference.
+
+---
+
+## 1) Day-by-Day Plan (Overview)
+
+| Day | Tasks                                                             | Posting  | Engagement                     |
+| --- | ----------------------------------------------------------------- | -------- | ------------------------------ |
+| 1   | Create account; initial engagement; collect timezone & language   | ❌        | ✅ 1× session (AM/PM)           |
+| 2   | Set profile picture & bio; engagement 2×15m                       | ❌        | ✅ Morning + Evening (15m each) |
+| 3   | Engagement AM/PM; **First post** (with human intervention)        | ✅ 1 post | ✅ AM + PM                      |
+| 4   | Engagement AM/PM; **Post**                                        | ✅ 1 post | ✅ AM + PM                      |
+| 5   | Engagement AM/PM; **Post**; finish onboarding & join main channel | ✅ 1 post | ✅ AM + PM                      |
+
+Reminders: morning and evening in the user’s timezone. If no response, retry next day.
+
+---
+
+## 2) US Targeting Logic
+
+**Step 1 — Ask location:**
+
+* If user is in Tier‑1 (USA, Canada, UK, Australia, New Zealand, Germany, France, Spain, Italy, Russia): normal setup in home country.
+* Else → ask device type.
+
+**Android (non‑Tier‑1):**
+
+1. Open Telegram channel **TikTok Mod Cloud** and search **“HOW TO DOWNLOAD? LOOK HERE!”**
+2. Watch tutorial.
+3. Download **TikTok Mod** + **TikTok Plugin** from **TikTokModGlobalChat**.
+4. Open TikTok Plugin → confirm **US audience**.
+5. Log in or create TikTok via **TikTok Mod**.
+   **Proof:** Screenshot from plugin showing US audience.
+
+**iPhone (non‑Tier‑1):**
+
+* Use a **US VPN**, download TikTok, create a **new** account, set **Language: English (US)** and region to US. Engage only with US content. **No screenshot required.**
+
+---
+
+## 3) Engagement Standards
+
+Per session:
+
+* Likes: **30**
+* Comments: **5**
+* Follows: **15**
+* Niches only: `tiktok growth tips`, `coach tips`, `girls support girls`
+* Engage **before posting**.
+* After posting: **reply to comments** using MegaViral comment guidelines (90% of replies include “MegaViral app”).
+
+**MegaViral Comment Guidelines (highlights):**
+
+* Reply to as many comments as possible.
+* Include **“MegaViral app”** in **≥90%** of replies to trigger blue search suggestion.
+* Vary phrasing; no copy-paste; delete “is this an ad/promo?” comments.
+* Prioritize: top comments → comments mentioning the app → most recent → others.
+* Like users’ comments.
+
+---
+
+## 4) Profile & Content SOP
+
+**Handle:** girl name + `viraltips` / `viralgrowth` / `megaviral`
+Examples: `sophia.viraltips`, `mia.viralgrowth`, `ava.megaviral`
+
+**Account name:** Girl name + `viral coach` (e.g., `Sophia | Viral Coach`).
+
+**Profile picture:** Cute girl aesthetic photo from Pinterest.
+
+**Bio (exact template):**
+
+> Helping girls grow & stay motivated 💕
+> Follow for daily inspo ✨
+> App you are looking for ‘MegaViral ✨’
+
+**Slideshow posts:**
+
+* **6 slides**
+* Images from **Pinterest**
+* Text format **provided** (employee follows)
+* Caption includes hashtags: `#girlssupportgirls #tiktokgrowth #howtogoviral` + relevant
+* **Reference example:** `https://www.tiktok.com/@claudia.viralgrowth/photo/7564899569629170966`
+
+---
+
+## 5) Payment & Objections
+
+**Model:** $1 per 1,000 views.
+**Only paid when a video reaches 1,000+ views** (do **not** mention unless asked).
+**Frequency:** Weekly.
+**Requirement:** Must post daily.
+**Expectation:** Minimum $250/week; some have made $10k.
+
+**Trust reassurance (when asked or skeptical):**
+
+* Payments processed via **Whop campaign**. Connect account; funds in **escrow**; payout after content is approved. Ensures transparency and secure payouts.
+
+---
+
+## 6) Proof & Verification Flow
+
+* Account creation, username, PFP, bio: **profile screenshot**.
+* US targeting: **Android plugin screenshot** (iOS/VPN: none).
+* Engagement sessions (Days 1–5): **no screenshots**; supportive check-ins and questions.
+* First 3 posts: **Send TikTok post link**; human review required before/after posting per your workflow.
+* Posts after Day 3: **Send TikTok link after posting**; human support continues.
+* Payment understanding: no proof.
+* Completion: finish the full 5-day sequence.
+
+---
+
+## 7) Bilingual Conversation Scripts (EN/ES)
+
+### Day 1 — Start & Setup
+
+**EN — DM 1 (first message):** *(exact)*
+Hello, this is your AI onboarding manager.\nI will be guiding you for the next 5 days to help you become a TikTok Poster.\nBefore we begin, do you have any questions?\nIf you ever need assistance from a human, just type human and my boss will show up to help you!
+
+**EN — DM 2 (language + timezone + country):**
+Before we start, which language would you like to use here — English or Spanish?
+What is your timezone (e.g., Europe/Madrid, America/New_York)?
+Which country are you currently in?
+
+**ES — DM 1 (primer mensaje):**
+Hola, soy tu gestor de incorporación por IA.\nTe acompañaré durante los próximos 5 días para ayudarte a convertirte en TikTok Poster.\n¿Tienes alguna pregunta antes de empezar?\nSi necesitas ayuda humana en cualquier momento, escribe **human** y mi responsable aparecerá para ayudarte.
+
+**ES — DM 2 (idioma + zona horaria + país):**
+Antes de empezar, ¿prefieres que hablemos en español o en inglés?
+¿Cuál es tu zona horaria (por ejemplo, Europe/Madrid, America/Mexico_City)?
+¿En qué país estás ahora mismo?
+
+**EN — DM 3 (Tier‑1 check & device):**
+Thanks. If you’re in a Tier‑1 country (US, CA, UK, AU, NZ, DE, FR, ES, IT, RU), you can set up and post normally. Otherwise, which device are you using — Android or iPhone?
+
+**ES — DM 3:**
+Gracias. Si estás en un país Tier‑1 (EE. UU., CA, UK, AU, NZ, DE, FR, ES, IT, RU), puedes configurar y publicar con normalidad. Si no, ¿qué dispositivo utilizas: Android o iPhone?
+
+**EN — Android instructions:** (send bullets + Telegram references and capture plugin screenshot)
+**ES — Android instrucciones:** (idéntico en español)
+
+**EN — iPhone instructions:** (VPN US, new account, English US; no screenshot)
+**ES — iPhone instrucciones:** (idéntico en español)
+
+**EN — Day 1 engagement check (supportive):**
+Please complete one engagement session today. When you’re done, let me know what type of content you’re seeing on your For You Page and if you have any questions.
+
+**ES — Día 1 compromiso:**
+Completa una sesión de interacción hoy. Cuando termines, cuéntame qué tipo de contenido ves en tu “Para ti” y si tienes preguntas.
+
+**Reminder (2h no reply, EN):**
+Just checking in. Have you started today’s engagement session? I’m here if anything is unclear.
+
+**Recordatorios equivalentes en ES.**
+
+---
+
+### Day 2 — Profile + Engagement (2×15m)
+
+**EN:**
+Today we’ll set your profile picture and bio, then complete two 15‑minute engagement sessions (morning and evening).
+
+* Handle format: girl name + `viraltips` / `viralgrowth` / `megaviral`
+* Account name: girl name + `viral coach`
+* PFP: cute, girly aesthetic from Pinterest
+* Bio (copy exactly):
+  Helping girls grow & stay motivated 💕
+  Follow for daily inspo ✨
+  App you are looking for ‘MegaViral ✨’
+  Please send a profile screenshot when done.
+
+**ES:** (same content in Spanish)
+
+**Reminders (AM/PM):** concise, professional nudges. If no reply → retry next day.
+
+---
+
+### Day 3 — First Post (+ AM/PM engagement)
+
+**EN:**
+Today you will publish your first slideshow post (6 slides, Pinterest images, text provided). Please send the TikTok post link here. I’ll assist you throughout this step.
+
+**ES:** idem.
+
+**Post‑publish (EN):**
+After posting, reply to comments following the MegaViral guidelines. Let me know if you need examples.
+
+---
+
+### Day 4 — Routine
+
+**EN:**
+Morning and evening engagement, and publish one post. Share the TikTok link once it’s live.
+
+**ES:** idem.
+
+---
+
+### Day 5 — Routine + Graduation
+
+**EN:**
+Same routine today. After your post is live, share the link and I’ll mark your onboarding as complete so you can join the main channel.
+
+**Graduation message (EN):**
+Onboarding complete. I’ve granted you access to the main channel. If you ever need assistance, type **human** and a manager will join the conversation.
+
+**ES equivalents for each message.**
+
+---
+
+## 8) Reminders & Non‑Response
+
+* Morning/evening reminders follow user’s timezone.
+* If no reply in 2 hours to a time‑sensitive message, send a gentle check‑in.
+* If no response all day, retry next morning; do not spam outside 9:00–20:00 local time.
+* When `human` is typed, pause automation for 24h and ping manager role.
+
+---
+
+## 9) Data Model
+
+**User fields**
+
+```json
+{
+  "user_id": "discord_id",
+  "language": "en|es",
+  "timezone": "America/New_York",
+  "country": "ES",
+  "tier1": true,
+  "device": "android|ios",
+  "us_targeting_proof": "url_or_boolean",
+  "day": 1,
+  "started_at": "2025-11-02T10:00:00Z",
+  "last_bot_ts": "2025-11-02T10:05:00Z",
+  "last_user_ts": "2025-11-02T10:06:00Z",
+  "engagement_sessions": {"1": ["am_done", "pm_done"], "2": ["am_done"]},
+  "profile_screenshots": ["attachment_ids"],
+  "posts": [
+    {"day":3, "url":"https://...", "reviewed_by_human": true},
+    {"day":4, "url":"https://..."}
+  ],
+  "human_intervention_needed": true,
+  "paused_until": null,
+  "notes": "free text for managers"
+}
+```
+
+**System settings**
+
+```json
+{
+  "morning_window": {"start_hour": 9, "end_hour": 12},
+  "evening_window": {"start_hour": 17, "end_hour": 20},
+  "reminder_gap_hours": 2,
+  "first_three_posts_require_human": true,
+  "manager_role_id": "1234567890"
+}
+```
+
+---
+
+## 10) Admin Commands
+
+* `/start` – enroll a user (DM)
+* `/language en|es` – set language
+* `/timezone <IANA>` – set timezone
+* `/country <code>` – set country
+* `/device android|ios` – set device
+* `/day set <1-5>` – override day
+* `/pause <hours>` – pause automation for user
+* `/resume` – resume automation
+* `/status` – show user’s onboarding summary
+* `/human` – user-triggered; pings manager role
+* `/link <tiktok_url>` – record a post link
+
+---
+
+## 11) Starter Code (Python, discord.py)
+
+> Production tip: move from JSON to SQLite or Supabase.
+
+```python
+# requirements: python-dotenv, discord.py, pytz, dateparser (optional), aiohttp
+import os, json, asyncio, pytz
+from datetime import datetime, timedelta
+import discord
+
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+MANAGER_ROLE_ID = int(os.getenv("MANAGER_ROLE_ID", "0"))
+DATA_FILE = "onboarding_users.json"
+
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
+
+DEFAULT_SETTINGS = {
+    "morning_window": {"start_hour": 9, "end_hour": 12},
+    "evening_window": {"start_hour": 17, "end_hour": 20},
+    "reminder_gap_hours": 2,
+    "first_three_posts_require_human": True
+}
+
+# --- storage helpers ---
+def load():
+    try:
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save(data):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+users = load()
+
+# --- utils ---
+def now_utc():
+    return datetime.utcnow()
+
+def to_local(dt, tz):
+    return pytz.utc.localize(dt).astimezone(pytz.timezone(tz))
+
+async def send_dm(user_id: int, text: str):
+    user = await client.fetch_user(user_id)
+    if user:
+        try:
+            await user.send(text)
+        except Exception:
+            pass
+
+# --- message templates (EN/ES) ---
+FIRST_MESSAGE = (
+    "Hello, this is your AI onboarding manager.\n"
+    "I will be guiding you for the next 5 days to help you become a TikTok Poster.\n"
+    "Before we begin, do you have any questions?\n"
+    "If you ever need assistance from a human, just type human and my boss will show up to help you!"
+)
+
+ASK_PREFS_EN = (
+    "Before we start, which language would you like to use here — English or Spanish?\n"
+    "What is your timezone (e.g., Europe/Madrid, America/New_York)?\n"
+    "Which country are you currently in?"
+)
+ASK_PREFS_ES = (
+    "Antes de empezar, ¿prefieres español o inglés?\n"
+    "¿Cuál es tu zona horaria (por ej., Europe/Madrid, America/Mexico_City)?\n"
+    "¿En qué país estás ahora mismo?"
+)
+
+# --- onboarding helpers ---
+async def start_onboarding(user_id: int):
+    users[str(user_id)] = {
+        "user_id": user_id,
+        "language": None,
+        "timezone": None,
+        "country": None,
+        "tier1": None,
+        "device": None,
+        "day": 1,
+        "started_at": now_utc().isoformat(),
+        "last_bot_ts": now_utc().isoformat(),
+        "last_user_ts": None,
+        "paused_until": None,
+        "posts": [],
+        "profile_screenshots": [],
+        "notes": ""
+    }
+    save(users)
+    await send_dm(user_id, FIRST_MESSAGE)
+    await send_dm(user_id, ASK_PREFS_EN + "\n\n" + ASK_PREFS_ES)
+
+TIER1_SET = {"US","CA","UK","GB","AU","NZ","DE","FR","ES","IT","RU"}
+
+async def handle_text(user: discord.User, content: str):
+    uid = str(user.id)
+    if uid not in users:
+        if content.strip().lower() in {"/start", "!start", "start"}:
+            await start_onboarding(user.id)
+        else:
+            await send_dm(user.id, "Type /start to begin onboarding.")
+        return
+
+    # mark last user activity
+    users[uid]["last_user_ts"] = now_utc().isoformat()
+    save(users)
+
+    # human handoff
+    if content.strip().lower() == "human":
+        users[uid]["paused_until"] = (now_utc() + timedelta(hours=24)).isoformat()
+        save(users)
+        await send_dm(user.id, "Understood. I have notified a manager — please hold.")
+        # Optional: ping a role in a staff channel
+        return
+
+    # very simple preference capture (improve with slash commands/forms)
+    if users[uid]["language"] is None:
+        lc = content.strip().lower()
+        if "spanish" in lc or lc == "es":
+            users[uid]["language"] = "es"
+        else:
+            users[uid]["language"] = "en"
+        save(users)
+        await send_dm(user.id, "Please share your timezone (IANA, e.g., Europe/Madrid).")
+        return
+
+    if users[uid]["timezone"] is None:
+        users[uid]["timezone"] = content.strip()
+        save(users)
+        await send_dm(user.id, "Thanks. Which country are you currently in?")
+        return
+
+    if users[uid]["country"] is None:
+        c = content.strip().upper()
+        users[uid]["country"] = c
+        users[uid]["tier1"] = (c in TIER1_SET)
+        save(users)
+        if users[uid]["tier1"]:
+            await send_dm(user.id, "Great. You can set up and post normally in your country. Today, complete one engagement session (30 likes, 5 comments, follow 15 in niche).")
+        else:
+            await send_dm(user.id, "Thanks. Which device are you using — Android or iPhone?")
+        return
+
+    if not users[uid]["tier1"] and users[uid]["device"] is None:
+        lc = content.strip().lower()
+        if "android" in lc:
+            users[uid]["device"] = "android"
+            save(users)
+            await send_dm(user.id, (
+                "Android US method: Open Telegram ‘TikTok Mod Cloud’, search ‘HOW TO DOWNLOAD? LOOK HERE!’, watch the tutorial, download TikTok Mod + Plugin.\n"
+                "Open the Plugin and confirm US audience, then log in or create an account in TikTok Mod. Please send a screenshot from the plugin showing US audience."
+            ))
+        elif "iphone" in lc or "ios" in lc:
+            users[uid]["device"] = "ios"
+            save(users)
+            await send_dm(user.id, (
+                "iPhone method: Connect to a US VPN, download TikTok, create a new account, set Language to English (US). No screenshot is required."
+            ))
+        return
+
+    # Simple capture for links and acknowledgements
+    if content.startswith("http") and "tiktok.com" in content:
+        users[uid]["posts"].append({"day": users[uid]["day"], "url": content.strip(), "reviewed_by_human": True})
+        save(users)
+        await send_dm(user.id, "Thanks — post link recorded.")
+        return
+
+    # Generic acknowledgement
+    await send_dm(user.id, "Noted. If you need anything, let me know. I’ll guide you through each daily step.")
+
+@client.event
+async def on_message(message: discord.Message):
+    if message.author.bot:
+        return
+    # DM-only flow recommended; if in guild, DM the user
+    if isinstance(message.channel, discord.DMChannel):
+        await handle_text(message.author, message.content)
+    else:
+        # encourage DM start
+        try:
+            await message.author.send("Hi — I can assist you in DMs. Type /start to begin onboarding.")
+        except Exception:
+            pass
+
+# --- scheduler for reminders ---
+async def scheduler():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        now = now_utc()
+        for uid, data in list(users.items()):
+            try:
+                tz = data.get("timezone")
+                if not tz:
+                    continue
+                paused_until = data.get("paused_until")
+                if paused_until and now < datetime.fromisoformat(paused_until.replace("Z","")):
+                    continue
+                local_now = to_local(now, tz)
+                # windows
+                mw = DEFAULT_SETTINGS["morning_window"]
+                ew = DEFAULT_SETTINGS["evening_window"]
+                def in_window(win):
+                    return win["start_hour"] <= local_now.hour < win["end_hour"]
+                # send AM/PM nudges if last_bot older than window & last_user before last_bot
+                last_bot = datetime.fromisoformat(data.get("last_bot_ts", now.isoformat()).replace("Z",""))
+                last_user_ts = data.get("last_user_ts")
+                last_user = datetime.fromisoformat(last_user_ts.replace("Z","")) if last_user_ts else None
+                need_nudge = (not last_user) or (last_user < last_bot and (now - last_bot) > timedelta(hours=DEFAULT_SETTINGS["reminder_gap_hours"]))
+                if in_window(mw) and need_nudge:
+                    await send_dm(int(uid), "Reminder: please complete your morning engagement session (30 likes, 5 comments, follow 15 accounts in niche).")
+                    users[uid]["last_bot_ts"] = now.isoformat()
+                elif in_window(ew) and need_nudge:
+                    await send_dm(int(uid), "Reminder: please complete your evening engagement session today. Let me know if you have any questions.")
+                    users[uid]["last_bot_ts"] = now.isoformat()
+                save(users)
+            except Exception:
+                continue
+        await asyncio.sleep(60)
+
+client.loop.create_task(scheduler())
+
+if __name__ == "__main__":
+    if not TOKEN:
+        print("Set DISCORD_BOT_TOKEN env var.")
+    else:
+        client.run(TOKEN)
+```
+
+**Notes:**
+
+* This is a minimal working backbone. Add slash commands, file upload handling for screenshots, and a database.
+* Integrate an LLM for conversational polish by wrapping outbound messages through a prompt template (professional, kind, redirect-to-task).
+* Add an admin channel ID to receive notifications when a user types `human` or submits first‑post links.
+
+---
+
+## 12) LLM Prompt (Optional Layer)
+
+**System prompt (EN):**
+
+> You are a professional, kind onboarding manager for a 5‑day TikTok Poster training. Your job is to guide, clarify, and gently redirect users to complete today’s tasks. Keep messages short, clear, and supportive. Avoid slang and emojis. If the user goes off topic, answer briefly then guide them back to the day’s objectives. Use the company SOPs for US targeting, engagement, profile setup, slideshow posting, and MegaViral comment guidelines. If the user types “human”, stop automation and notify a manager.
+
+**System prompt (ES):** (same content in Spanish; mirror tone)
+
+---
+
+## 13) Next Steps
+
+* Replace JSON with SQLite/Supabase.
+* Add slash commands & forms for timezone, country, device, and uploads.
+* Add human‑review queue for first 3 posts.
+* Wire manager role pings & admin dashboard (Supabase + small web panel).
+* Add success metrics (posts/day, links captured, days completed).
+
+End of document.
+
