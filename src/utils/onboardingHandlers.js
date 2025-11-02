@@ -1017,49 +1017,33 @@ class OnboardingHandlers {
       // Build task list
       let taskList = '';
       dayTasks.tasks.forEach((task, index) => {
-        const status = task.completed ? '✅' : '📋';
+        const status = task.completed ? '[DONE]' : '[TODO]';
         taskList += `${status} **Task ${index + 1}**: ${task.title}\n`;
         if (!task.completed) {
           taskList += `   ${task.description}\n\n`;
         } else {
-          taskList += `   ✓ Completed\n\n`;
+          taskList += `   Completed\n\n`;
         }
       });
 
-      // Generate LLM welcome message if enabled
-      let welcomeMessage = `Welcome to Day ${currentDay}! Let's get started with your tasks.`;
-      if (llmService.isEnabled() && onboardingProgress) {
-        try {
-          const llmResponse = await llmService.generateResponse(
-            `I'm starting Day ${currentDay} of onboarding. Can you welcome me and explain what I need to do today?`,
-            onboardingProgress.conversation_history || [],
-            {
-              currentDay,
-              tasks: dayTasks.tasks,
-              userName: user.username,
-              userRole: 'New Member'
-            }
-          );
-          
-          if (llmResponse.success) {
-            welcomeMessage = llmResponse.message;
-            await onboardingProgress.addConversationMessage('assistant', welcomeMessage, []);
-          }
-        } catch (llmError) {
-          console.error('Error generating welcome message with LLM:', llmError);
-          // Continue with default welcome message
-        }
+      // Use professional welcome message without emojis
+      let welcomeMessage;
+      if (currentDay === 1) {
+        // Exact first message from boardingspecsai
+        welcomeMessage = `Hello, this is your AI onboarding manager.\nI will be guiding you for the next 5 days to help you become a TikTok Poster.\nBefore we begin, do you have any questions?\nIf you ever need assistance from a human, just type human and my boss will show up to help you!`;
+      } else {
+        // Professional message for other days
+        welcomeMessage = `Welcome to Day ${currentDay}. Today's focus is on ${dayData.day_title.toLowerCase()}.`;
       }
 
       const welcomeEmbed = new EmbedBuilder()
-        .setTitle(`🎯 Day ${currentDay}: ${dayData.day_title}`)
+        .setTitle(`Day ${currentDay}: ${dayData.day_title}`)
         .setDescription(`${welcomeMessage}\n\n${dayData.day_description}`)
         .addFields(
-          { name: `📋 Today's Tasks (${dayTasks.tasks.filter(t => !t.completed).length} remaining)`, value: taskList || 'No tasks available', inline: false },
-          { name: '💬 Need Help?', value: 'Just type your questions here! I\'m here to help guide you through each step.', inline: false }
+          { name: `Today's Tasks (${dayTasks.tasks.filter(t => !t.completed).length} remaining)`, value: taskList || 'No tasks available', inline: false }
         )
         .setColor(0x5865F2)
-        .setFooter({ text: `Progress: Day ${currentDay} of 5 • You can chat with me anytime!` })
+        .setFooter({ text: `Progress: Day ${currentDay} of 5` })
         .setTimestamp();
 
       // Build mention string

@@ -301,7 +301,7 @@ Current Day Tasks:`;
 
     if (tasks && tasks.length > 0) {
       tasks.forEach((task, index) => {
-        const status = task.completed ? '✅' : '⏳';
+        const status = task.completed ? '[COMPLETE]' : '[PENDING]';
         prompt += `\n${status} Task ${index + 1}: ${task.title}`;
         if (task.description) {
           prompt += ` - ${task.description}`;
