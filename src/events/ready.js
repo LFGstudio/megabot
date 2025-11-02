@@ -46,6 +46,35 @@ module.exports = {
     const cronJobs = require('../utils/cronJobs');
     cronJobs.initialize(client);
     console.log('⏰ Cron jobs initialized');
+    
+    // Run migrations if needed
+    try {
+      const OnboardingProgress = require('../models/OnboardingProgress');
+      const { initializeTasks } = require('../utils/onboardingTasks');
+      
+      // Check if we need to migrate old tasks to new format
+      const allProgress = await OnboardingProgress.find({ status: { $ne: 'completed' } });
+      let migratedCount = 0;
+      
+      for (const progress of allProgress) {
+        // Check if tasks need updating by looking at Day 1 task IDs
+        const day1Tasks = progress.tasks?.day1?.tasks || [];
+        const hasOldTasks = day1Tasks.some(task => task.id === 'welcome_intro' || task.id === 'read_rules');
+        
+        if (hasOldTasks) {
+          console.log(`[MIGRATION] Migrating tasks for user ${progress.user_id}...`);
+          progress.tasks = initializeTasks();
+          await progress.save();
+          migratedCount++;
+        }
+      }
+      
+      if (migratedCount > 0) {
+        console.log(`[MIGRATION] Migrated tasks for ${migratedCount} users to TikTok Poster format`);
+      }
+    } catch (migrationError) {
+      console.error('Error running onboarding tasks migration:', migrationError);
+    }
 
     // Send startup notification to admin channel
     const adminChannel = client.channels.cache.get(client.config.channels.admin);
