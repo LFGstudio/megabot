@@ -9,8 +9,8 @@ module.exports = {
     .addChannelOption(option =>
       option
         .setName('channel')
-        .setDescription('The channel to rename')
-        .setRequired(true)
+        .setDescription('The channel to rename (leave empty to rename current channel)')
+        .setRequired(false)
     )
     .addStringOption(option =>
       option
@@ -23,7 +23,8 @@ module.exports = {
 
   async execute(interaction, client) {
     try {
-      const targetChannel = interaction.options.getChannel('channel');
+      // Use provided channel or default to current channel
+      const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
       const newName = interaction.options.getString('new-name');
 
       // Store old name before renaming

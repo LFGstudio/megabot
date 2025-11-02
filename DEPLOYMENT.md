@@ -8,6 +8,7 @@ This guide will walk you through deploying the MegaViral Discord Bot to various 
 - Discord Bot Token
 - MongoDB Database
 - GitHub Repository (for deployment)
+- Google Gemini API Key (for LLM-powered onboarding)
 
 ## 📋 Environment Variables
 
@@ -38,6 +39,9 @@ ADMIN_ROLE_ID=1234567890123456789
 # Optional: TikTok API Keys
 TIKTOK_API_KEY=your_tiktok_api_key
 RAPIDAPI_KEY=your_rapidapi_key
+
+# Google Gemini API Key (Required for LLM-powered onboarding)
+GEMINI_API_KEY=AIzaSyCWvKk61YkDpk9Shqp1_kGUdh4O75HpBks
 
 # Bot Settings
 NODE_ENV=production
@@ -117,13 +121,30 @@ railway init
 railway variables set DISCORD_TOKEN=your_token
 railway variables set MONGODB_URI=your_mongodb_uri
 railway variables set DISCORD_CLIENT_ID=your_client_id
-# ... set all other variables
+railway variables set DISCORD_GUILD_ID=your_guild_id
+railway variables set GEMINI_API_KEY=AIzaSyCWvKk61YkDpk9Shqp1_kGUdh4O75HpBks
+# ... set all other variables (channel IDs, role IDs, etc.)
 ```
+
+**Or via Railway Dashboard:**
+1. Go to your Railway project
+2. Click on your service
+3. Go to "Variables" tab
+4. Add `GEMINI_API_KEY` with value: `AIzaSyCWvKk61YkDpk9Shqp1_kGUdh4O75HpBks`
+5. Add all other required environment variables
 
 #### 4. Deploy
 ```bash
 railway up
 ```
+
+**Quick Setup Script:**
+You can also use the provided script to set all environment variables at once:
+```bash
+./deploy-env-vars.sh
+```
+
+This interactive script will prompt you for all required variables including the Gemini API key.
 
 #### 5. Configure Custom Domain (Optional)
 ```bash

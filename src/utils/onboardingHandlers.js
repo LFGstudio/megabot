@@ -1,5 +1,9 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, PermissionFlagsBits } = require('discord.js');
 const User = require('../models/User');
+const OnboardingProgress = require('../models/OnboardingProgress');
+const { initializeTasks, getTasksForDay } = require('./onboardingTasks');
+const llmService = require('./llmService');
+const onboardingDataCollector = require('./onboardingDataCollector');
 
 class OnboardingHandlers {
   constructor() {}
@@ -79,7 +83,8 @@ class OnboardingHandlers {
               PermissionFlagsBits.SendMessages, 
               PermissionFlagsBits.ReadMessageHistory, 
               PermissionFlagsBits.EmbedLinks, 
-              PermissionFlagsBits.AttachFiles
+              PermissionFlagsBits.AttachFiles,
+              PermissionFlagsBits.ManageChannels
             ]
           },
           {
@@ -133,33 +138,62 @@ class OnboardingHandlers {
         
         console.log('✅ Onboarding channel created/found:', onboardingChannel.id);
 
-        // Post manual onboarding welcome message and ping moderators (only if new)
+        // Initialize or get onboarding progress (only if new channel)
+        let onboardingProgress = null;
         if (!existing) {
-          // Build mention string and participant text based on available roles
-          const hasModerator = client.config.roles.moderator;
-          const mentionString = hasModerator 
-            ? `<@${interaction.user.id}> <@&${client.config.roles.moderator}>`
-            : `<@${interaction.user.id}>`;
-          
-          const participantsText = hasModerator
-            ? `You, a moderator <@&${client.config.roles.moderator}> and our team`
-            : `You and our team`;
-          
-          const manualEmbed = new EmbedBuilder()
-          .setTitle('👋 Welcome — Manual Onboarding')
-          .setDescription(`Hi ${interaction.user}, this private channel is for your manual onboarding with our team.`)
-          .addFields(
-            { name: '👥 Participants', value: participantsText, inline: false },
-            { name: '✅ Next Step', value: 'Please briefly introduce yourself and share your goals. A moderator will be with you shortly.', inline: false },
-            { name: '🔒 Privacy', value: 'Only you and our staff can see this channel.', inline: false }
-          )
-          .setColor(0x00ff00)
-          .setTimestamp();
-          
-          await onboardingChannel.send({ 
-            content: mentionString,
-            embeds: [manualEmbed]
-          });
+          try {
+            // Check if onboarding progress already exists
+            onboardingProgress = await OnboardingProgress.findOne({ user_id: interaction.user.id });
+            
+            if (!onboardingProgress) {
+              // Initialize new onboarding progress with tasks
+              onboardingProgress = new OnboardingProgress({
+                user_id: interaction.user.id,
+                channel_id: onboardingChannel.id,
+                current_day: 1,
+                tasks: initializeTasks(),
+                conversation_history: [],
+                llm_enabled: llmService.isEnabled()
+              });
+              await onboardingProgress.save();
+              console.log('✅ Onboarding progress initialized for user:', interaction.user.id);
+            } else {
+              // Update channel ID if it changed
+              onboardingProgress.channel_id = onboardingChannel.id;
+              await onboardingProgress.save();
+            }
+
+            // Initialize onboarding data collection
+            try {
+              const OnboardingData = require('../models/OnboardingData');
+              let onboardingData = await OnboardingData.findOne({ user_id: interaction.user.id });
+              
+              if (!onboardingData) {
+                onboardingData = new OnboardingData({
+                  user_id: interaction.user.id,
+                  discord_username: interaction.user.username,
+                  discord_tag: `${interaction.user.username}#${interaction.user.discriminator}`,
+                  collected_via: 'llm_conversation'
+                });
+                await onboardingData.save();
+                console.log('✅ Onboarding data collection initialized for user:', interaction.user.id);
+              }
+            } catch (dataError) {
+              console.error('Error initializing onboarding data:', dataError);
+              // Continue even if data initialization fails
+            }
+          } catch (progressError) {
+            console.error('Error initializing onboarding progress:', progressError);
+            // Continue with manual onboarding if LLM setup fails
+          }
+        } else {
+          // Get existing progress if channel already exists
+          onboardingProgress = await OnboardingProgress.findOne({ user_id: interaction.user.id });
+        }
+
+        // Post LLM-guided onboarding welcome message (only if new channel)
+        if (!existing) {
+          await this.sendDayWelcomeMessage(onboardingChannel, interaction.user, client, onboardingProgress);
         }
 
         // Confirm to the user in the original channel
@@ -962,6 +996,338 @@ class OnboardingHandlers {
         content: '❌ An error occurred while rejecting the verification.',
         ephemeral: true
       });
+    }
+  }
+
+  /**
+   * Send welcome message for a specific day with tasks
+   */
+  async sendDayWelcomeMessage(channel, user, client, onboardingProgress) {
+    try {
+      const currentDay = onboardingProgress?.current_day || 1;
+      const dayData = getTasksForDay(currentDay);
+      
+      if (!dayData) {
+        console.error('No day data found for day:', currentDay);
+        return;
+      }
+
+      const dayTasks = onboardingProgress?.getCurrentDayTasks() || { tasks: [] };
+
+      // Build task list
+      let taskList = '';
+      dayTasks.tasks.forEach((task, index) => {
+        const status = task.completed ? '✅' : '📋';
+        taskList += `${status} **Task ${index + 1}**: ${task.title}\n`;
+        if (!task.completed) {
+          taskList += `   ${task.description}\n\n`;
+        } else {
+          taskList += `   ✓ Completed\n\n`;
+        }
+      });
+
+      // Generate LLM welcome message if enabled
+      let welcomeMessage = `Welcome to Day ${currentDay}! Let's get started with your tasks.`;
+      if (llmService.isEnabled() && onboardingProgress) {
+        const llmResponse = await llmService.generateResponse(
+          `I'm starting Day ${currentDay} of onboarding. Can you welcome me and explain what I need to do today?`,
+          onboardingProgress.conversation_history || [],
+          {
+            currentDay,
+            tasks: dayTasks.tasks,
+            userName: user.username,
+            userRole: 'New Member'
+          }
+        );
+        
+        if (llmResponse.success) {
+          welcomeMessage = llmResponse.message;
+          await onboardingProgress.addConversationMessage('assistant', welcomeMessage);
+        }
+      }
+
+      const welcomeEmbed = new EmbedBuilder()
+        .setTitle(`🎯 Day ${currentDay}: ${dayData.day_title}`)
+        .setDescription(`${welcomeMessage}\n\n${dayData.day_description}`)
+        .addFields(
+          { name: `📋 Today's Tasks (${dayTasks.tasks.filter(t => !t.completed).length} remaining)`, value: taskList || 'No tasks available', inline: false },
+          { name: '💬 Need Help?', value: 'Just type your questions here! I\'m here to help guide you through each step.', inline: false }
+        )
+        .setColor(0x5865F2)
+        .setFooter({ text: `Progress: Day ${currentDay} of 5 • You can chat with me anytime!` })
+        .setTimestamp();
+
+      // Build mention string
+      const hasModerator = client.config.roles.moderator;
+      const mentionString = hasModerator 
+        ? `<@${user.id}> <@&${client.config.roles.moderator}>`
+        : `<@${user.id}>`;
+
+      await channel.send({
+        content: mentionString,
+        embeds: [welcomeEmbed]
+      });
+
+      // Add system message to conversation history
+      if (onboardingProgress) {
+        await onboardingProgress.addConversationMessage('system', `Day ${currentDay} started. Tasks: ${dayTasks.tasks.map(t => t.title).join(', ')}`, []);
+      }
+
+    } catch (error) {
+      console.error('Error sending day welcome message:', error);
+      // Fallback to basic message
+      const fallbackEmbed = new EmbedBuilder()
+        .setTitle('👋 Welcome to Your Onboarding Journey!')
+        .setDescription(`Hi ${user}, welcome to your 5-day onboarding process!`)
+        .setColor(0x5865F2)
+        .setTimestamp();
+      
+      await channel.send({ embeds: [fallbackEmbed] });
+    }
+  }
+
+  /**
+   * Handle LLM conversation in onboarding channel
+   */
+  async handleOnboardingMessage(message, client) {
+    try {
+      // Ignore bot messages
+      if (message.author.bot) return;
+
+      // Check if this is an onboarding channel
+      const onboardingProgress = await OnboardingProgress.findOne({ 
+        channel_id: message.channel.id 
+      });
+
+      if (!onboardingProgress || !onboardingProgress.llm_enabled) {
+        return; // Not an onboarding channel or LLM disabled
+      }
+
+      // Get user model for context
+      const user = await User.findOne({ discord_id: message.author.id });
+
+      // Process images from message attachments
+      const imageDataArray = [];
+      const imageMetadata = [];
+      
+      if (message.attachments && message.attachments.size > 0) {
+        for (const attachment of message.attachments.values()) {
+          // Check if attachment is an image
+          if (attachment.contentType && attachment.contentType.startsWith('image/')) {
+            try {
+              // Download image
+              const response = await require('axios').get(attachment.url, {
+                responseType: 'arraybuffer'
+              });
+              
+              // Convert to base64
+              const base64Image = Buffer.from(response.data).toString('base64');
+              
+              // Store image data for LLM
+              imageDataArray.push({
+                mimeType: attachment.contentType,
+                data: base64Image
+              });
+              
+              // Store image metadata
+              imageMetadata.push({
+                url: attachment.url,
+                filename: attachment.name,
+                mimeType: attachment.contentType,
+                size: attachment.size,
+                description: null // Will be filled by AI analysis
+              });
+              
+              console.log(`📷 Processed image: ${attachment.name} (${attachment.contentType})`);
+            } catch (imgError) {
+              console.error('Error processing image:', imgError);
+            }
+          }
+        }
+      }
+
+      // Generate image descriptions using AI if images were uploaded
+      if (imageDataArray.length > 0) {
+        for (let i = 0; i < imageDataArray.length; i++) {
+          const analysis = await llmService.analyzeImage(
+            imageDataArray[i],
+            {
+              currentDay: onboardingProgress.current_day,
+              tasks: onboardingProgress.getCurrentDayTasks().tasks
+            },
+            'Describe what you see in this image. Be specific and helpful for the onboarding process.'
+          );
+          
+          if (analysis.success) {
+            imageMetadata[i].description = analysis.analysis;
+          }
+        }
+      }
+
+      // Add user message to conversation history with images
+      await onboardingProgress.addConversationMessage('user', message.content || '[Image(s) shared]', imageMetadata);
+
+      // Extract and store data from user message (TikTok profile, country, etc.)
+      try {
+        await onboardingDataCollector.extractAndStoreData(
+          message.author.id,
+          message.content || '',
+          imageDataArray.map((img, idx) => ({
+            mimeType: img.mimeType,
+            data: img.data,
+            url: imageMetadata[idx]?.url,
+            filename: imageMetadata[idx]?.filename,
+            description: imageMetadata[idx]?.description
+          })),
+          {
+            currentDay: onboardingProgress.current_day,
+            tasks: onboardingProgress.getCurrentDayTasks().tasks,
+            discordUser: message.author
+          }
+        );
+      } catch (dataError) {
+        console.error('Error collecting onboarding data:', dataError);
+        // Continue even if data collection fails
+      }
+
+      // Generate LLM response with images
+      const dayData = getTasksForDay(onboardingProgress.current_day);
+      const dayTasks = onboardingProgress.getCurrentDayTasks();
+
+      const llmResponse = await llmService.generateResponse(
+        message.content || 'I\'ve shared some images. What do you see?',
+        onboardingProgress.conversation_history.slice(-10), // Last 10 messages for context
+        {
+          currentDay: onboardingProgress.current_day,
+          tasks: dayTasks.tasks,
+          userName: message.author.username,
+          userRole: user?.role || 'New Member'
+        },
+        imageDataArray // Pass images to LLM
+      );
+
+      if (llmResponse.success) {
+        // Add assistant response to history
+        await onboardingProgress.addConversationMessage('assistant', llmResponse.message);
+
+        // Send response
+        await message.reply(llmResponse.message);
+
+        // Check if user mentioned completing a task
+        await this.checkTaskCompletion(message.content || '', onboardingProgress, message);
+      } else {
+        await message.reply('I apologize, but I\'m having trouble right now. Please try again or contact a moderator.');
+      }
+
+    } catch (error) {
+      console.error('Error handling onboarding message:', error);
+      // Send a helpful error message
+      try {
+        await message.reply('❌ I encountered an error processing your message. Please try again or contact a moderator if the issue persists.');
+      } catch (replyError) {
+        console.error('Error sending error message:', replyError);
+      }
+    }
+  }
+
+  /**
+   * Check if user message indicates task completion
+   */
+  async checkTaskCompletion(messageContent, onboardingProgress, discordMessage) {
+    try {
+      const dayTasks = onboardingProgress.getCurrentDayTasks();
+      const lowerContent = messageContent.toLowerCase();
+
+      // Check for task completion keywords
+      const completionKeywords = ['completed', 'done', 'finished', 'complete', 'finished task', 'done with task'];
+      const hasCompletionKeyword = completionKeywords.some(keyword => lowerContent.includes(keyword));
+
+      if (hasCompletionKeyword) {
+        // Try to identify which task
+        for (const task of dayTasks.tasks) {
+          if (!task.completed && lowerContent.includes(task.title.toLowerCase().substring(0, 10))) {
+            // Mark task as completed
+            await onboardingProgress.completeTask(onboardingProgress.current_day, task.id, messageContent);
+            
+            // Check if all tasks for the day are complete
+            const allComplete = await onboardingProgress.checkDayCompletion(onboardingProgress.current_day);
+            
+            if (allComplete) {
+              const currentDay = onboardingProgress.current_day;
+              const isLastDay = currentDay === 5;
+              
+              const completionEmbed = new EmbedBuilder()
+                .setTitle('🎉 Day Complete!')
+                .setDescription(`Congratulations! You've completed all tasks for Day ${currentDay}!`)
+                .setColor(0x00ff00)
+                .setTimestamp();
+              
+              if (isLastDay) {
+                completionEmbed.addFields(
+                  { name: '🎊 Congratulations!', value: 'You\'ve completed the entire onboarding process! A moderator will verify your completion and grant you access.', inline: false }
+                );
+              } else {
+                completionEmbed.addFields(
+                  { name: '✅ Next Steps', value: `Great job! You're now ready for Day ${currentDay + 1}. I'll set that up for you now!`, inline: false }
+                );
+              }
+              
+              await discordMessage.channel.send({ embeds: [completionEmbed] });
+              
+              // Automatically advance to next day if not the last day
+              if (!isLastDay) {
+                // Wait a moment, then advance
+                setTimeout(async () => {
+                  await onboardingProgress.advanceToNextDay(false); // Use normal advance (day is complete)
+                  const channel = await client.channels.fetch(onboardingProgress.channel_id);
+                  const user = await client.users.fetch(onboardingProgress.user_id);
+                  await this.sendDayWelcomeMessage(channel, user, client, onboardingProgress);
+                }, 3000); // 3 second delay
+              }
+            } else {
+              const remainingCount = dayTasks.tasks.filter(t => !t.completed).length;
+              await discordMessage.react('✅');
+              await discordMessage.channel.send(`Great! Task "${task.title}" marked as complete. ${remainingCount} task(s) remaining for today.`);
+            }
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking task completion:', error);
+    }
+  }
+
+  /**
+   * Advance user to next day (can be called manually or automatically)
+   */
+  async advanceToNextDay(channelId, client) {
+    try {
+      const onboardingProgress = await OnboardingProgress.findOne({ channel_id: channelId });
+      
+      if (!onboardingProgress) {
+        return false;
+      }
+
+      if (onboardingProgress.current_day < 5) {
+        // Force advance (used by admin command)
+        const advanced = await onboardingProgress.advanceToNextDay(true); // Force advance
+        
+        if (advanced) {
+          // Send next day welcome message
+          const channel = await client.channels.fetch(channelId);
+          const user = await client.users.fetch(onboardingProgress.user_id);
+          
+          await this.sendDayWelcomeMessage(channel, user, client, onboardingProgress);
+          
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error advancing to next day:', error);
+      return false;
     }
   }
 }
