@@ -195,14 +195,14 @@ class TikTokWebScraper {
     let retryCount = 0;
     
     while (retryCount < this.maxRetries) {
-      try {
-        await this.initialize();
-        
-        const page = await this.browser.newPage();
-        
+    try {
+      await this.initialize();
+      
+      const page = await this.browser.newPage();
+      
         // Enhanced stealth settings
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-        await page.setViewport({ width: 1920, height: 1080 });
+      await page.setViewport({ width: 1920, height: 1080 });
         
         // Set extra headers to avoid detection
         await page.setExtraHTTPHeaders({
@@ -213,12 +213,12 @@ class TikTokWebScraper {
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1',
         });
-        
-        const accountUrl = `https://www.tiktok.com/@${username}`;
+      
+      const accountUrl = `https://www.tiktok.com/@${username}`;
         console.log(`🔍 Scraping TikTok account: ${accountUrl} (Attempt ${retryCount + 1})`);
-        
+      
         // Navigate with enhanced settings
-        await page.goto(accountUrl, { 
+      await page.goto(accountUrl, { 
           waitUntil: 'networkidle0',
           timeout: 60000 
         });
@@ -253,13 +253,13 @@ class TikTokWebScraper {
             return extractedVideos;
           }
         }
-        
-        // Scroll to load more videos
-        await this.scrollToLoadVideos(page);
-        
+      
+      // Scroll to load more videos
+      await this.scrollToLoadVideos(page);
+      
         // Extract video data with enhanced selectors and API fallback
-        const videos = await page.evaluate(() => {
-          const videos = [];
+      const videos = await page.evaluate(() => {
+        const videos = [];
           
           // Try multiple selector patterns for video elements
           const selectors = [
@@ -289,9 +289,9 @@ class TikTokWebScraper {
           }
           
           console.log(`Found ${videoElements.length} video elements`);
-          
-          videoElements.forEach((element, index) => {
-            try {
+        
+        videoElements.forEach((element, index) => {
+          try {
               // Extract video URL with multiple methods
               let videoUrl = null;
               const linkSelectors = [
@@ -320,8 +320,8 @@ class TikTokWebScraper {
                   parent = parent.parentElement;
                 }
               }
-              
-              // Extract video ID from URL
+            
+            // Extract video ID from URL
               let videoId = `video_${index}`;
               if (videoUrl) {
                 const idMatch = videoUrl.match(/\/video\/(\d+)/);
@@ -389,38 +389,38 @@ class TikTokWebScraper {
                   }
                 }
               }
-              
-              if (videoUrl && videoId) {
-                videos.push({
-                  id: videoId,
-                  url: videoUrl,
-                  caption: caption,
-                  posted_at: postDate,
-                  views: views,
-                  tier1_views: Math.floor(views * 0.3) // Estimate 30% Tier 1 views
-                });
-              }
-            } catch (error) {
-              console.error('Error extracting video data:', error);
+            
+            if (videoUrl && videoId) {
+              videos.push({
+                id: videoId,
+                url: videoUrl,
+                caption: caption,
+                posted_at: postDate,
+                views: views,
+                tier1_views: Math.floor(views * 0.3) // Estimate 30% Tier 1 views
+              });
             }
-          });
-          
-          return videos;
+          } catch (error) {
+            console.error('Error extracting video data:', error);
+          }
         });
         
-        await page.close();
-        
+        return videos;
+      });
+      
+      await page.close();
+      
         // If we got videos, return them; otherwise retry
         if (videos.length > 0) {
-          console.log(`📱 Found ${videos.length} videos for @${username}`);
-          return videos;
+      console.log(`📱 Found ${videos.length} videos for @${username}`);
+      return videos;
         } else {
           console.log(`⚠️ No videos found for @${username}, retrying...`);
           retryCount++;
           await new Promise(resolve => setTimeout(resolve, this.delayBetweenRequests * retryCount));
         }
-        
-      } catch (error) {
+      
+    } catch (error) {
         console.error(`❌ Error scraping account @${username} (attempt ${retryCount + 1}):`, error);
         retryCount++;
         
@@ -483,11 +483,11 @@ class TikTokWebScraper {
     let retryCount = 0;
     
     while (retryCount < this.maxRetries) {
-      try {
-        await this.initialize();
-        
-        const page = await this.browser.newPage();
-        
+    try {
+      await this.initialize();
+      
+      const page = await this.browser.newPage();
+      
         // Enhanced stealth settings
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         await page.setViewport({ width: 1920, height: 1080 });
@@ -503,9 +503,9 @@ class TikTokWebScraper {
         });
         
         console.log(`🔍 Scraping video details: ${videoUrl} (Attempt ${retryCount + 1})`);
-        
-        // Navigate to video page
-        await page.goto(videoUrl, { 
+      
+      // Navigate to video page
+      await page.goto(videoUrl, { 
           waitUntil: 'networkidle0',
           timeout: 60000 
         });
@@ -520,8 +520,8 @@ class TikTokWebScraper {
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Extract detailed video data with comprehensive selectors
-        const videoData = await page.evaluate(() => {
-          try {
+      const videoData = await page.evaluate(() => {
+        try {
             // Function to parse view counts
             const parseCount = (text) => {
               if (!text) return 0;
@@ -607,8 +607,8 @@ class TikTokWebScraper {
                 }
               }
             }
-            
-            // Extract share count
+          
+          // Extract share count
             let shares = 0;
             const shareSelectors = [
               '[data-e2e="video-share-count"]',
@@ -630,8 +630,8 @@ class TikTokWebScraper {
                 }
               }
             }
-            
-            // Extract caption
+          
+          // Extract caption
             let caption = '';
             const captionSelectors = [
               '[data-e2e="video-desc"]',
@@ -667,23 +667,23 @@ class TikTokWebScraper {
                 break;
               }
             }
-            
-            return {
+          
+          return {
               views: views,
               likes: likes,
               comments: comments,
               shares: shares,
               caption: caption,
               author: author
-            };
-          } catch (error) {
-            console.error('Error extracting video details:', error);
-            return null;
-          }
-        });
-        
-        await page.close();
-        
+          };
+        } catch (error) {
+          console.error('Error extracting video details:', error);
+          return null;
+        }
+      });
+      
+      await page.close();
+      
         // If we got valid data, return it
         if (videoData && (videoData.views > 0 || videoData.likes > 0 || videoData.comments > 0)) {
           console.log(`✅ Scraped video details: ${videoData.views} views, ${videoData.likes} likes, ${videoData.comments} comments`);

@@ -305,7 +305,7 @@ async function handleButtonInteraction(interaction, client) {
     console.error('❌ Interaction type:', interaction.type);
     
     try {
-      await interaction.reply({
+    await interaction.reply({
         content: `❌ An error occurred while processing your request: ${error.message}`,
         ephemeral: true
       });
@@ -544,7 +544,7 @@ async function handleTikTokVerificationModal(interaction, client) {
       );
 
     try {
-      await channel.send({ embeds: [verificationEmbed], components: [row] });
+    await channel.send({ embeds: [verificationEmbed], components: [row] });
     } catch (sendError) {
       console.error('Error sending verification message:', sendError);
       // If we can't send to the channel, delete it and inform the user
@@ -657,7 +657,7 @@ async function handleWarmupVerificationModal(interaction, client) {
       );
 
     try {
-      await channel.send({ embeds: [verificationEmbed], components: [row] });
+    await channel.send({ embeds: [verificationEmbed], components: [row] });
     } catch (sendError) {
       console.error('Error sending verification message:', sendError);
       // If we can't send to the channel, delete it and inform the user
@@ -819,8 +819,8 @@ async function handleAddTikTokAccountModal(interaction, client) {
     // Send the verification message to the channel
     console.log(`📱 Sending verification message to channel ${channel.id}`);
     try {
-      const verificationMessage = await channel.send({ embeds: [verificationEmbed], components: [row] });
-      console.log(`✅ Verification message sent successfully: ${verificationMessage.id}`);
+    const verificationMessage = await channel.send({ embeds: [verificationEmbed], components: [row] });
+    console.log(`✅ Verification message sent successfully: ${verificationMessage.id}`);
     } catch (sendError) {
       console.error('Error sending verification message:', sendError);
       // If we can't send to the channel, delete it and inform the user

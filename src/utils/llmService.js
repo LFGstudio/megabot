@@ -12,15 +12,43 @@ class LLMService {
     } else {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
-        // List of models to try in order of preference
-        // gemini-1.5-flash is fastest, gemini-1.5-pro is more capable
-        this.modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
-        this.currentModelIndex = 0;
         
-        // Initialize with first model (we'll handle errors when actually using it)
-        this.model = this.genAI.getGenerativeModel({ model: this.modelsToTry[this.currentModelIndex] });
+        // First, try to list available models to find what works
+        let workingModel = null;
+        const modelsToTest = [
+          'gemini-2.0-flash-exp',
+          'gemini-1.5-pro',
+          'gemini-1.5-flash',
+          'gemini-pro-vision',
+          'gemini-pro',
+          'gemini-2.5-flash-lite',
+          'gemini-2.5-flash',
+          'gemini-2.5-pro'
+        ];
+        
+        // Try to test models by creating them
+        for (const modelName of modelsToTest) {
+          try {
+            this.model = this.genAI.getGenerativeModel({ model: modelName });
+            workingModel = modelName;
+            console.log(`✅ Found working Gemini model: ${modelName}`);
+            break;
+          } catch (e) {
+            continue;
+          }
+        }
+        
+        if (!workingModel) {
+          console.error('❌ No working Gemini models found with this API key');
+          this.model = null;
+          this.enabled = false;
+          return;
+        }
+        
+        this.modelsToTry = modelsToTest.slice(modelsToTest.indexOf(workingModel));
+        this.currentModelIndex = 0;
         this.enabled = true;
-        console.log(`✅ LLM Service initialized with Google Gemini using ${this.modelsToTry[this.currentModelIndex]} (Vision enabled)`);
+        console.log(`✅ LLM Service initialized with Google Gemini using ${workingModel} (Vision enabled)`);
       } catch (error) {
         console.error('❌ Error initializing Gemini:', error);
         this.enabled = false;
