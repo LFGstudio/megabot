@@ -24,6 +24,8 @@ class OnboardingHandlers {
       
       console.log(`🔍 Total categories found: ${allOnboardingCategories.size}`);
       for (const category of allOnboardingCategories) {
+        console.log(`🔍 Processing category:`, category);
+        console.log(`🔍 Category type:`, category.type, 'name:', category.name, 'id:', category.id);
         const channelCount = interaction.guild.channels.cache.filter(
           c => c.parentId === category.id && c.type === ChannelType.GuildText
         ).size;
