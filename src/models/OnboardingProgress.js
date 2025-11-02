@@ -139,6 +139,15 @@ const onboardingProgressSchema = new mongoose.Schema({
   last_user_message: {
     type: Date,
     default: null
+  },
+  language: {
+    type: String,
+    enum: ['en', 'es'],
+    default: null
+  },
+  timezone: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

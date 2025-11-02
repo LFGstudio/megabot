@@ -1,4 +1,5 @@
 const cron = require('node-cron');
+const { EmbedBuilder } = require('discord.js');
 const TikTokScraper = require('./tiktokScraper');
 
 class CronJobs {
@@ -13,7 +14,8 @@ class CronJobs {
     this.setupHealthCheck();
     this.setupTikTokScraping();
     this.setupInactiveChannelCleanup();
-    console.log('✅ All cron jobs initialized');
+    this.setupEngagementReminders();
+    console.log('All cron jobs initialized');
   }
 
   setupStatsUpdate() {
@@ -89,7 +91,79 @@ class CronJobs {
 
     this.jobs.set('inactiveChannelCleanup', cleanupJob);
     cleanupJob.start();
-    console.log('⏰ Inactive channel cleanup scheduled (every hour)');
+    console.log('Inactive channel cleanup scheduled (every hour)');
+  }
+
+  setupEngagementReminders() {
+    // Check every 30 minutes for engagement reminders at 10 AM and 8 PM local time
+    const reminderJob = cron.schedule('*/30 * * * *', async () => {
+      await this.sendEngagementReminders();
+    }, {
+      scheduled: false,
+      timezone: 'UTC'
+    });
+
+    this.jobs.set('engagementReminders', reminderJob);
+    reminderJob.start();
+    console.log('Engagement reminders scheduled (every 30 minutes)');
+  }
+
+  async sendEngagementReminders() {
+    try {
+      const OnboardingProgress = require('../models/OnboardingProgress');
+      const onboardingHandlers = require('./onboardingHandlers');
+      
+      // Get all active onboarding progress
+      const activeProgress = await OnboardingProgress.find({ 
+        status: { $ne: 'completed' },
+        timezone: { $ne: null }
+      });
+
+      for (const progress of activeProgress) {
+        try {
+          if (progress.bot_muted) continue; // Skip if bot is muted
+          
+          // Get current time in user's timezone
+          const userTz = progress.timezone;
+          const now = new Date();
+          
+          // Convert to user's timezone (simplified - for production use a proper timezone library)
+          const localHour = new Date(now.toLocaleString('en-US', { timeZone: userTz })).getHours();
+          
+          // Check if it's 10 AM or 8 PM in user's timezone
+          if (localHour !== 10 && localHour !== 20) continue;
+          
+          const dayTasks = progress.getCurrentDayTasks();
+          const nextTask = dayTasks.tasks.find(t => !t.completed);
+          
+          // Only send reminder if next task is an engagement task and has scheduled_time
+          if (!nextTask || !nextTask.scheduled_time) continue;
+          
+          const { getTasksForDay } = require('./onboardingTasks');
+          const dayTaskDef = getTasksForDay(progress.current_day);
+          const fullTaskDef = dayTaskDef.tasks.find(t => t.id === nextTask.id);
+          
+          if (!fullTaskDef || fullTaskDef.scheduled_time !== `${localHour}:00`) continue;
+          
+          // Send reminder
+          const channel = await this.client.channels.fetch(progress.channel_id);
+          if (channel) {
+            const reminderEmbed = new EmbedBuilder()
+              .setTitle(fullTaskDef.title)
+              .setDescription(`${fullTaskDef.description}\n\n${fullTaskDef.reason || ''}`)
+              .setColor(0x5865F2)
+              .setTimestamp();
+            
+            await channel.send({ embeds: [reminderEmbed] });
+            console.log(`[REMINDER] Sent engagement reminder to user ${progress.user_id}`);
+          }
+        } catch (error) {
+          console.error(`Error sending reminder for user ${progress.user_id}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in engagement reminders:', error);
+    }
   }
 
   async updateAllUserStats() {
