@@ -1,6 +1,6 @@
 {
   "name": "megaviral-discord-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Discord bot for MegaViral clipping community management",
   "main": "src/index.js",
   "scripts": {
