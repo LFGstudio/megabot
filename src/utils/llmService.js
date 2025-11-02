@@ -12,23 +12,30 @@ class LLMService {
     } else {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
-        // Try gemini-pro first (most stable), then fallback to others
-        // Model names: gemini-pro, gemini-1.5-pro, gemini-1.5-flash
-        try {
-          this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-          console.log('✅ Using gemini-pro model');
-        } catch (e) {
+        // Try available models in order - test which one works
+        const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp', 'gemini-pro-vision'];
+        let modelInitialized = false;
+        
+        for (const modelName of modelsToTry) {
           try {
-            console.log('⚠️ gemini-pro failed, trying gemini-1.5-pro');
-            this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-            console.log('✅ Using gemini-1.5-pro model');
-          } catch (e2) {
-            console.log('⚠️ All models failed, LLM disabled');
-            this.model = null;
-            this.enabled = false;
-            return;
+            // Just create the model instance to test if it's available
+            this.model = this.genAI.getGenerativeModel({ model: modelName });
+            console.log(`✅ Using ${modelName} model`);
+            modelInitialized = true;
+            break;
+          } catch (e) {
+            console.log(`⚠️ ${modelName} not available, trying next...`);
+            continue;
           }
         }
+        
+        if (!modelInitialized) {
+          console.log('⚠️ No working Gemini model found, LLM disabled');
+          this.model = null;
+          this.enabled = false;
+          return;
+        }
+        
         this.enabled = true;
         console.log('✅ LLM Service initialized with Google Gemini (Vision enabled)');
       } catch (error) {

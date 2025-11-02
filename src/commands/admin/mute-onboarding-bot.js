@@ -7,17 +7,17 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('mute-onboarding-bot')
     .setDescription('Mute/unmute the bot in an onboarding channel (Admin/Mod only)')
-    .addChannelOption(option =>
-      option
-        .setName('channel')
-        .setDescription('The onboarding channel (leave empty for current channel)')
-        .setRequired(false)
-    )
     .addBooleanOption(option =>
       option
         .setName('mute')
         .setDescription('True to mute, false to unmute')
         .setRequired(true)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('channel')
+        .setDescription('The onboarding channel (leave empty for current channel)')
+        .setRequired(false)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
