@@ -327,3 +327,203 @@ Payout = (Tier-1 Views / 100,000) × $15
 - Warm-up completed
 - Ready to start clipping!
 
+---
+
+# TikTok Poster Onboarding Knowledge Base
+
+## About TikTok Poster Program
+
+The TikTok Poster program is a specialized onboarding track for creators focused on posting slideshow content to grow followers and drive app installs. This is different from the clipping program.
+
+## Program Overview
+
+- **Purpose**: Post engaging slideshow content to build a TikTok following and drive MegaViral app installs
+- **Payment Model**: $1 per 1,000 views
+- **Frequency**: Weekly payments
+- **Requirement**: Must post daily
+- **Minimum Expectation**: $250/week (some have made $10k)
+
+## Payment & Trust
+
+**Model:**
+- $1 per 1,000 views
+- Only paid when video reaches 1,000+ views (mention only if asked)
+- Weekly payout frequency
+- Must post daily to maintain eligibility
+
+**Trust Reassurance:**
+- Payments processed via **Whop campaign**
+- Funds held in **escrow**
+- Payout after content approval
+- Ensures transparency and secure payouts
+
+## US Targeting Logic
+
+**Tier-1 Countries (Normal Setup):**
+- USA, Canada, UK, Australia, New Zealand, Germany, France, Spain, Italy, Russia
+- Users in these countries can set up and post normally in their home country
+
+**Non-Tier-1 Android Users:**
+1. Open Telegram channel **TikTok Mod Cloud** and search **"HOW TO DOWNLOAD? LOOK HERE!"**
+2. Watch the tutorial
+3. Download **TikTok Mod** + **TikTok Plugin** from **TikTokModGlobalChat**
+4. Open TikTok Plugin → confirm **US audience**
+5. Log in or create TikTok via **TikTok Mod**
+6. **Proof Required**: Screenshot from plugin showing US audience
+
+**Non-Tier-1 iPhone Users:**
+1. Use a **US VPN**
+2. Download TikTok from App Store
+3. Create a **new** account
+4. Set **Language: English (US)** and region to US
+5. Engage only with US content
+6. **No screenshot required**
+
+## Profile Setup Requirements
+
+**Handle Format:**
+- Girl name + `viraltips` / `viralgrowth` / `megaviral`
+- Examples: `sophia.viraltips`, `mia.viralgrowth`, `ava.megaviral`
+
+**Account Name:**
+- Girl name + `viral coach`
+- Example: `Sophia | Viral Coach`
+
+**Profile Picture:**
+- Cute, girly aesthetic photo from Pinterest
+
+**Bio (Exact Template):**
+```
+Helping girls grow & stay motivated 💕
+Follow for daily inspo ✨
+App you are looking for 'MegaViral ✨'
+```
+
+## Content Creation Guidelines
+
+**Slideshow Posts:**
+- **6 slides** per post
+- Images from **Pinterest**
+- Text format provided by employee
+- Caption includes hashtags: `#girlssupportgirls #tiktokgrowth #howtogoviral` + relevant tags
+
+**Reference Example:** `https://www.tiktok.com/@claudia.viralgrowth/photo/7564899569629170966`
+
+**Hashtags to Include:**
+- `#girlssupportgirls`
+- `#tiktokgrowth`
+- `#howtogoviral`
+- Plus relevant niche tags
+
+## Engagement Standards
+
+**Per Session Requirements:**
+- Likes: **30**
+- Comments: **5**
+- Follows: **15**
+
+**Niches to Focus On:**
+- `tiktok growth tips`
+- `coach tips`
+- `girls support girls`
+
+**Important:** Engage **before posting**. After posting, **reply to comments** using MegaViral guidelines.
+
+## MegaViral Comment Guidelines
+
+**After Posting:**
+- Reply to as many comments as possible
+- Include **"MegaViral app"** in **≥90%** of replies to trigger blue search suggestion
+- Vary phrasing - no copy-paste
+- Delete "is this an ad/promo?" comments
+- Prioritize: top comments → comments mentioning app → most recent → others
+- Like users' comments
+
+**Example Replies:**
+- "Yes! It's the MegaViral app ✨"
+- "You can find it on the MegaViral app"
+- "Download the MegaViral app for more!"
+- Vary these, don't copy-paste
+
+## 5-Day Onboarding Plan
+
+| Day | Tasks | Posting | Engagement |
+|-----|-------|---------|------------|
+| 1 | Create account; initial engagement; collect timezone & language | ❌ | ✅ 1× session (AM/PM) |
+| 2 | Set profile picture & bio; engagement 2×15m | ❌ | ✅ Morning + Evening (15m each) |
+| 3 | Engagement AM/PM; **First post** (with human intervention) | ✅ 1 post | ✅ AM + PM |
+| 4 | Engagement AM/PM; **Post** | ✅ 1 post | ✅ AM + PM |
+| 5 | Engagement AM/PM; **Post**; finish onboarding & join main channel | ✅ 1 post | ✅ AM + PM |
+
+**Reminders:**
+- Morning and evening reminders in user's timezone
+- If no response in 2 hours to time-sensitive message, send gentle check-in
+- If no response all day, retry next morning
+- Do not spam outside 9:00-20:00 local time
+- When `human` is typed, pause automation for 24h and ping manager role
+
+## Proof & Verification Flow
+
+**Day 1:**
+- Account creation, username, PFP, bio: **profile screenshot**
+- US targeting (Android): **plugin screenshot** showing US audience
+- US targeting (iOS/VPN): **no screenshot required**
+- Engagement session: **no screenshot**; supportive check-ins
+
+**Day 2:**
+- Profile setup: **profile screenshot**
+- Engagement sessions: **no screenshot**; supportive check-ins
+
+**Day 3:**
+- First post: **Send TikTok post link**; human review required
+- Engagement sessions: **no screenshot**
+
+**Day 4:**
+- Post: **Send TikTok link after posting**; human support continues
+- Engagement sessions: **no screenshot**
+
+**Day 5:**
+- Post: **Send TikTok link after posting**
+- Completion: finish full 5-day sequence
+
+**General Rules:**
+- First 3 posts require human review
+- Posts after Day 3: send link after posting
+- Payment understanding: no proof required
+- All engagement sessions are supportive, no screenshots needed
+
+## Reminder & Non-Response Logic
+
+**Morning Window:** 9:00 - 12:00 local time
+**Evening Window:** 17:00 - 20:00 local time
+
+**Behavior:**
+- If no reply in 2 hours to time-sensitive message → gentle check-in
+- If no response all day → retry next morning
+- Do not spam outside 9:00-20:00 local time
+- When `human` typed → pause automation for 24h, ping manager role
+
+**Engagement Reminders:**
+- Morning: "Please complete your morning engagement session (30 likes, 5 comments, follow 15 accounts in niche)"
+- Evening: "Please complete your evening engagement session today. Let me know if you have any questions"
+
+## Common Questions - TikTok Poster Program
+
+**Q: How much can I earn?**  
+A: $1 per 1,000 views. Minimum expectation is $250/week, some have made $10k.
+
+**Q: When do I get paid?**  
+A: Weekly, via Whop campaign with funds in escrow.
+
+**Q: Do I need to post every day?**  
+A: Yes, daily posting is required to maintain eligibility.
+
+**Q: What if I don't hit 1,000 views?**  
+A: No payment for that video, but keep posting consistently.
+
+**Q: Is this secure?**  
+A: Yes, payments are processed via Whop with escrow, ensuring transparency.
+
+**Q: What if I need help?**  
+A: Type `human` anytime for immediate manager assistance.
+
