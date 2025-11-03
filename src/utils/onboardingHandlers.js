@@ -1128,8 +1128,8 @@ class OnboardingHandlers {
           await message.channel.send(`<@&${client.config.roles.moderator}> <@${message.author.id}> needs human assistance in <#${message.channel.id}>.`);
         }
         
-        // Update channel name
-        await this.updateChannelForDay(message.channel.id, onboardingProgress.current_day, message.guild);
+        // Update channel name (but don't move category)
+        await this.updateChannelForDay(message.channel.id, onboardingProgress.current_day, message.guild, false);
         
         return; // Don't continue with LLM response
       }
@@ -1150,10 +1150,10 @@ class OnboardingHandlers {
           await onboardingProgress.save();
           console.log(`[AUTO-MUTE] Bot muted because ${message.author.username} (${isModerator ? 'mod' : 'admin'}) is speaking`);
           
-          // Update channel name to show needs attention
+          // Update channel name to show needs attention (but don't move category)
           const guild = message.guild;
           if (guild) {
-            await this.updateChannelForDay(message.channel.id, onboardingProgress.current_day, guild);
+            await this.updateChannelForDay(message.channel.id, onboardingProgress.current_day, guild, false);
           }
         }
         return; // Don't reply to moderators/admins
@@ -1460,7 +1460,7 @@ class OnboardingHandlers {
   /**
    * Update channel name and category based on current day
    */
-  async updateChannelForDay(channelId, currentDay, guild) {
+  async updateChannelForDay(channelId, currentDay, guild, moveCategory = true) {
     try {
       const channel = await guild.channels.fetch(channelId);
       if (!channel) return;
@@ -1521,8 +1521,10 @@ class OnboardingHandlers {
         console.log(`✅ Renamed channel from ${channel.name} to ${newChannelName}`);
       }
 
-      // Move channel to appropriate category
-      await this.moveChannelToCategory(channel, currentDay, guild);
+      // Only move channel to appropriate category if moveCategory is true
+      if (moveCategory) {
+        await this.moveChannelToCategory(channel, currentDay, guild);
+      }
     } catch (error) {
       console.error('Error updating channel for day:', error);
     }
