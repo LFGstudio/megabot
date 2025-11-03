@@ -40,14 +40,25 @@ module.exports = {
       const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
       const shouldMute = interaction.options.getBoolean('mute');
 
-      // Check if this is an onboarding channel
-      const onboardingProgress = await OnboardingProgress.findOne({
-        channel_id: targetChannel.id
-      });
+      // Find onboarding progress by channel first; if not found, fallback to user's onboarding channel
+      let onboardingProgress = await OnboardingProgress.findOne({ channel_id: targetChannel.id });
+      if (!onboardingProgress) {
+        // Fallback: try to locate the caller's onboarding channel so command works from any channel
+        onboardingProgress = await OnboardingProgress.findOne({ user_id: interaction.user.id });
+        if (onboardingProgress) {
+          // Overwrite targetChannel to the user's onboarding channel
+          try {
+            const fetched = await interaction.client.channels.fetch(onboardingProgress.channel_id);
+            if (fetched) {
+              targetChannel = fetched;
+            }
+          } catch (_) {}
+        }
+      }
 
       if (!onboardingProgress) {
         return await interaction.reply({
-          content: 'This is not an onboarding channel.',
+          content: 'Could not find an onboarding channel to mute/unmute. Specify the channel option or run this inside the onboarding channel.',
           ephemeral: true
         });
       }
