@@ -61,12 +61,12 @@ MegaViral is an AI app which helps creators grow on TikTok. The MegaViral poster
 **Android (non‑Tier‑1):**
 
 **Step 1 - Watch Tutorial:**
-1. Go to Telegram channel: **https://t.me/TikTokModCloud**
-2. Navigate to the **"Updates"** channel
+1. Go to Telegram channel: **https://t.me/TikTokModGlobalChat**
+2. Navigate to the **"Updates"** channel (tutorial)
 3. Watch the tutorial video
 
 **Step 2 - Download Apps:**
-1. Go to: **https://t.me/TikTokModGlobalChat**
+1. Go to: **https://t.me/TikTokModCloud**
 2. Download **TikTok Plugin** and **TokMod** apps
 3. Open **TikTok Plugin** → confirm **US audience**
 4. Log in or create TikTok via **TokMod**
@@ -168,7 +168,7 @@ Thanks. If you're in a Tier‑1 country (US, CA, UK, AU, NZ, DE, FR, ES, IT, RU)
 Gracias. Si estás en un país Tier‑1 (EE. UU., CA, UK, AU, NZ, DE, FR, ES, IT, RU), puedes configurar y publicar con normalidad. Si no, ¿qué dispositivo utilizas: Android o iPhone?
 
 **EN — Android instructions:**  
-Android US method: First, watch the tutorial video at https://t.me/TikTokModCloud (go to Updates channel). Then download TikTok Plugin and TokMod apps from https://t.me/TikTokModGlobalChat. Open TikTok Plugin and confirm US audience, then log in or create an account in TokMod. Please send a screenshot from the plugin showing US audience.
+Android US method: First, watch the tutorial video at https://t.me/TikTokModGlobalChat (Updates channel). Then download TikTok Plugin and TokMod apps from https://t.me/TikTokModCloud. Open TikTok Plugin and confirm US audience, then log in or create an account in TokMod. Please send a screenshot from the plugin showing US audience.
 
 **ES — Android instrucciones:** (idéntico en español)
 

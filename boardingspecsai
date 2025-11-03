@@ -58,12 +58,12 @@ Reminders: morning and evening in the user’s timezone. If no response, retry n
 **Android (non‑Tier‑1):**
 
 **Step 1 - Watch Tutorial:**
-1. Go to Telegram channel: **https://t.me/TikTokModCloud**
-2. Navigate to the **"Updates"** channel
+1. Go to Telegram channel: **https://t.me/TikTokModGlobalChat**
+2. Navigate to the **"Updates"** channel (tutorial)
 3. Watch the tutorial video
 
 **Step 2 - Download Apps:**
-1. Go to: **https://t.me/TikTokModGlobalChat**
+1. Go to: **https://t.me/TikTokModCloud**
 2. Download **TikTok Plugin** and **TokMod** apps
 3. Open **TikTok Plugin** → confirm **US audience**
 4. Log in or create TikTok via **TokMod**
@@ -465,7 +465,7 @@ async def handle_text(user: discord.User, content: str):
             users[uid]["device"] = "android"
             save(users)
             await send_dm(user.id, (
-                "Android US method: First, watch the tutorial video at https://t.me/TikTokModCloud (go to Updates channel). Then download TikTok Plugin and TokMod apps from https://t.me/TikTokModGlobalChat.\n"
+                "Android US method: First, watch the tutorial video at https://t.me/TikTokModGlobalChat (Updates channel). Then download TikTok Plugin and TokMod apps from https://t.me/TikTokModCloud.\n"
                 "Open TikTok Plugin and confirm US audience, then log in or create an account in TokMod. Please send a screenshot from the plugin showing US audience."
             ))
         elif "iphone" in lc or "ios" in lc:
